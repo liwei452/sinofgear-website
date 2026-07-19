@@ -28,12 +28,15 @@ export function resolveInitialLanguage(
 ): Lang {
   if (isSupportedLanguage(saved)) return saved
 
+  const countryLanguage = languageFromCountryCode(countryCode)
+  if (countryLanguage) return countryLanguage
+
   for (const browserLanguage of browserLanguages) {
     const match = languageFromLocale(browserLanguage)
     if (match) return match
   }
 
-  return languageFromCountryCode(countryCode) ?? 'en'
+  return 'en'
 }
 
 export function languageFromCountryCode(countryCode?: string | null): Lang | undefined {

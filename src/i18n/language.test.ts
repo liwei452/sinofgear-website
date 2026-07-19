@@ -20,6 +20,14 @@ describe('language selection', () => {
     expect(resolveInitialLanguage('de', ['ja-JP'])).toBe('de')
   })
 
+  it('uses a supported IP country before browser languages when there is no saved choice', () => {
+    expect(resolveInitialLanguage(null, ['en-US'], 'CN')).toBe('zh')
+  })
+
+  it('keeps a saved choice ahead of IP country and browser language', () => {
+    expect(resolveInitialLanguage('es', ['en-US'], 'CN')).toBe('es')
+  })
+
   it('falls back to English content when a translation is missing', () => {
     expect(getLocalizedValue({ en: 'Products', de: 'Produkte' }, 'ja')).toBe('Products')
   })
