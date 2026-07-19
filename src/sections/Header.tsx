@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Globe, Mail, Menu } from 'lucide-react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, NavLink } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import {
@@ -13,13 +13,8 @@ import { navItems, siteConfig } from '@/data/site'
 import { useLang } from '@/i18n/LanguageContext'
 import { languageNames, supportedLanguages } from '@/i18n/language'
 
-export function scrollToId(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 export default function Header() {
   const { lang, setLang } = useLang()
-  const { pathname } = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -30,14 +25,13 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => setOpen(false), [pathname])
-
-  const navigation = (
+  const navigation = (onNavigate?: () => void) => (
     <>
       {navItems.map((item) => (
         <NavLink
           key={item.href}
           to={item.href}
+          onClick={onNavigate}
           className={({ isActive }) =>
             `rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               isActive ? 'bg-accent text-primary' : 'text-foreground/75 hover:bg-accent/60 hover:text-primary'
@@ -71,7 +65,7 @@ export default function Header() {
           </Link>
 
           <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
-            {navigation}
+            {navigation()}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -111,9 +105,9 @@ export default function Header() {
               <SheetContent side="right" className="w-72">
                 <SheetTitle className="text-left">Navigation</SheetTitle>
                 <nav aria-label="Mobile navigation" className="mt-6 flex flex-col gap-1">
-                  {navigation}
+                  {navigation(() => setOpen(false))}
                   <Button asChild className="mt-4 gap-2">
-                    <Link to="/contact">
+                    <Link to="/contact" onClick={() => setOpen(false)}>
                       <Mail className="h-4 w-4" />
                       Request a Quote
                     </Link>
