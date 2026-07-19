@@ -4,6 +4,8 @@ import PageHero from '@/components/PageHero'
 import Seo from '@/components/Seo'
 import { Button } from '@/components/ui/button'
 import { pages } from '@/data/pages'
+import { useLang } from '@/i18n/LanguageContext'
+import { localizeValue } from '@/i18n/messages'
 
 const reviewAreas = [
   {
@@ -39,13 +41,15 @@ const reviewAreas = [
 ]
 
 export default function CapabilitiesPage() {
+  const { lang, text } = useLang()
+  const page = localizeValue(pages.capabilities, lang)
   return (
     <>
-      <Seo seo={pages.capabilities.seo} pathname="/capabilities" image="/assets/factory.jpg" />
+      <Seo seo={page.seo} pathname="/capabilities" image="/assets/factory.jpg" />
       <PageHero
-        eyebrow={pages.capabilities.eyebrow}
-        title={pages.capabilities.title}
-        subtitle={pages.capabilities.subtitle}
+        eyebrow={page.eyebrow}
+        title={page.title}
+        subtitle={page.subtitle}
         compact
       />
 
@@ -53,18 +57,18 @@ export default function CapabilitiesPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">Project fit</p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Technical Review Before Quotation</h2>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">{text('Project fit')}</p>
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{text('Technical Review Before Quotation')}</h2>
               <p className="mt-5 text-sm leading-7 text-muted-foreground">
-                A product name alone is not enough to define a gear project. The review connects tooth geometry, the mating system, material condition, secondary features, inspection, and order context.
+                {text('A product name alone is not enough to define a gear project. The review connects tooth geometry, the mating system, material condition, secondary features, inspection, and order context.')}
               </p>
               <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Capability, achievable accuracy, and process responsibility are confirmed for the submitted drawing rather than presented as unverified universal limits.
+                {text('Capability, achievable accuracy, and process responsibility are confirmed for the submitted drawing rather than presented as unverified universal limits.')}
               </p>
             </div>
             <img
               src="/assets/factory.jpg"
-              alt="Industrial machining environment used as a visual reference"
+              alt={text('Industrial machining environment used as a visual reference')}
               className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
             />
           </div>
@@ -75,8 +79,8 @@ export default function CapabilitiesPage() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
                   <area.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <h3 className="mt-5 text-lg font-bold">{area.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{area.description}</p>
+                <h3 className="mt-5 text-lg font-bold">{text(area.title)}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{text(area.description)}</p>
               </article>
             ))}
           </div>
@@ -86,7 +90,7 @@ export default function CapabilitiesPage() {
       <section className="bg-secondary/50 py-16 lg:py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-steel p-7 text-white sm:p-10">
-            <h2 className="text-2xl font-extrabold sm:text-3xl">What to include in your inquiry</h2>
+            <h2 className="text-2xl font-extrabold sm:text-3xl">{text('What to include in your inquiry')}</h2>
             <div className="mt-6 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
               {[
                 'Dimensioned drawing and available 3D model',
@@ -97,14 +101,14 @@ export default function CapabilitiesPage() {
                 'Inspection reports and document expectations',
               ].map((item) => (
                 <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  {item}
+                  {text(item)}
                 </div>
               ))}
             </div>
             <Button asChild size="lg" className="mt-8 gap-2 bg-sky-500 font-bold hover:bg-sky-400">
               <Link to="/contact">
                 <Mail className="h-5 w-5" />
-                Start an RFQ
+                {text('Start an RFQ')}
               </Link>
             </Button>
           </div>

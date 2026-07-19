@@ -3,15 +3,19 @@ import ProductCard from '@/components/ProductCard'
 import Seo from '@/components/Seo'
 import { pages } from '@/data/pages'
 import { products } from '@/data/products'
+import { useLang } from '@/i18n/LanguageContext'
+import { localizeValue } from '@/i18n/messages'
 
 export default function ProductsPage() {
+  const { lang } = useLang()
+  const page = localizeValue(pages.products, lang)
   return (
     <>
-      <Seo seo={pages.products.seo} pathname="/products" />
+      <Seo seo={page.seo} pathname="/products" />
       <PageHero
-        eyebrow={pages.products.eyebrow}
-        title={pages.products.title}
-        subtitle={pages.products.subtitle}
+        eyebrow={page.eyebrow}
+        title={page.title}
+        subtitle={page.subtitle}
         compact
       />
       <section className="bg-secondary/40 py-16 lg:py-24">

@@ -18,15 +18,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { getProductBySlug } from '@/data/products'
+import { getProductBySlug, localizeProduct } from '@/data/products'
 import { getSiteUrl } from '@/data/site'
-import { sharedCopy } from '@/data/pages'
 import {
   buildBreadcrumbSchema,
   buildFaqSchema,
   buildProductSchema,
 } from '@/lib/seo'
 import NotFoundPage from './NotFoundPage'
+import { useLang } from '@/i18n/LanguageContext'
 
 function ListPanel({
   title,
@@ -59,8 +59,10 @@ function ListPanel({
 
 export default function ProductDetailPage() {
   const { slug } = useParams()
-  const product = getProductBySlug(slug)
-  if (!product) return <NotFoundPage />
+  const sourceProduct = getProductBySlug(slug)
+  const { lang, text, t } = useLang()
+  if (!sourceProduct) return <NotFoundPage />
+  const product = localizeProduct(sourceProduct, lang)
 
   const siteUrl = getSiteUrl()
   const quoteHref = `/contact?product=${product.slug}`
@@ -84,16 +86,16 @@ export default function ProductDetailPage() {
         <div className="absolute inset-0 bg-industrial-grid opacity-40" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <nav aria-label="Breadcrumb" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-            <Link to="/" className="hover:text-white">Home</Link>
+            <Link to="/" className="hover:text-white">{t('nav.home')}</Link>
             <span aria-hidden="true">/</span>
-            <Link to="/products" className="hover:text-white">Products</Link>
+            <Link to="/products" className="hover:text-white">{t('nav.products')}</Link>
             <span aria-hidden="true">/</span>
             <span className="text-white">{product.shortName}</span>
           </nav>
 
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-400">Made to drawing</p>
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-400">{text('Made to drawing')}</p>
               <h1 className="mt-4 text-balance text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
                 {product.name}
               </h1>
@@ -103,12 +105,12 @@ export default function ProductDetailPage() {
                 <Button asChild size="lg" className="gap-2 bg-sky-500 font-bold hover:bg-sky-400">
                   <Link to={quoteHref}>
                     <Mail className="h-5 w-5" />
-                    {sharedCopy.requestQuote}
+                    {t('action.requestQuote')}
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/5 text-white hover:bg-white/15 hover:text-white">
                   <Link to="/products">
-                    View All Products
+                    {t('action.viewAllProducts')}
                     <ArrowRight className="h-5 w-5" />
                   </Link>
                 </Button>
@@ -127,28 +129,28 @@ export default function ProductDetailPage() {
 
       <section className="bg-secondary/40 py-16 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
-          <ListPanel title={sharedCopy.mainFeatures} items={product.features} icon={Layers3} />
-          <ListPanel title={sharedCopy.materials} items={product.materials} icon={Factory} />
+          <ListPanel title={t('section.features')} items={product.features} icon={Layers3} />
+          <ListPanel title={t('section.materials')} items={product.materials} icon={Factory} />
           <section className="rounded-2xl border bg-white p-6 shadow-sm sm:p-7">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-primary">
                 <Gauge className="h-5 w-5" aria-hidden="true" />
               </span>
-              <h2 className="text-xl font-bold tracking-tight">{sharedCopy.precision}</h2>
+              <h2 className="text-xl font-bold tracking-tight">{t('section.precision')}</h2>
             </div>
             <p className="mt-5 text-sm leading-7 text-muted-foreground">{product.precision}</p>
           </section>
-          <ListPanel title={sharedCopy.customization} items={product.customization} icon={Wrench} />
-          <ListPanel title={sharedCopy.industries} items={product.industries} icon={Ruler} />
-          <ListPanel title={sharedCopy.inspection} items={product.inspection} icon={ShieldCheck} />
+          <ListPanel title={t('section.customization')} items={product.customization} icon={Wrench} />
+          <ListPanel title={t('section.industries')} items={product.industries} icon={Ruler} />
+          <ListPanel title={t('section.inspection')} items={product.inspection} icon={ShieldCheck} />
         </div>
       </section>
 
       <section className="py-16 lg:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm font-bold uppercase tracking-[0.2em] text-primary">Buyer guidance</p>
+          <p className="text-center text-sm font-bold uppercase tracking-[0.2em] text-primary">{t('section.buyerGuidance')}</p>
           <h2 className="mt-3 text-center text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {sharedCopy.faq}
+            {t('section.faq')}
           </h2>
           <Accordion type="single" collapsible className="mt-10 rounded-2xl border bg-white px-5 sm:px-7">
             {product.faq.map((item, index) => (
@@ -166,15 +168,15 @@ export default function ProductDetailPage() {
       <section className="bg-primary py-14 text-primary-foreground">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-4 sm:px-6 md:flex-row md:items-center lg:px-8">
           <div>
-            <h2 className="text-2xl font-extrabold sm:text-3xl">Have a drawing for {product.shortName.toLowerCase()}?</h2>
+            <h2 className="text-2xl font-extrabold sm:text-3xl">{text('Have a drawing for this product?')}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-primary-foreground/75">
-              Share the controlled drawing, quantity, material preference, and application context for review.
+              {text('Share the controlled drawing, quantity, material preference, and application context for review.')}
             </p>
           </div>
           <Button asChild size="lg" variant="secondary" className="shrink-0 font-bold">
             <Link to={quoteHref}>
               <Mail className="h-5 w-5" />
-              {sharedCopy.requestQuote}
+              {t('action.requestQuote')}
             </Link>
           </Button>
         </div>

@@ -14,7 +14,7 @@ import { useLang } from '@/i18n/LanguageContext'
 import { languageNames, supportedLanguages } from '@/i18n/language'
 
 export default function Header() {
-  const { lang, setLang } = useLang()
+  const { lang, setLang, text, t } = useLang()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -38,7 +38,7 @@ export default function Header() {
             }`
           }
         >
-          {item.label}
+          {text(item.label)}
         </NavLink>
       ))}
     </>
@@ -92,7 +92,7 @@ export default function Header() {
             <Button asChild size="sm" className="hidden gap-1.5 font-semibold shadow-md shadow-primary/25 sm:inline-flex">
               <Link to="/contact">
                 <Mail className="h-4 w-4" />
-                Get a Quote
+                {t('action.getQuote')}
               </Link>
             </Button>
 
@@ -103,13 +103,13 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72">
-                <SheetTitle className="text-left">Navigation</SheetTitle>
+                <SheetTitle className="text-left">{text('Navigation')}</SheetTitle>
                 <nav aria-label="Mobile navigation" className="mt-6 flex flex-col gap-1">
                   {navigation(() => setOpen(false))}
                   <Button asChild className="mt-4 gap-2">
                     <Link to="/contact" onClick={() => setOpen(false)}>
                       <Mail className="h-4 w-4" />
-                      Request a Quote
+                      {t('action.requestQuote')}
                     </Link>
                   </Button>
                 </nav>

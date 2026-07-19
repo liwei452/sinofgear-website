@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { submitInquiry } from '@/services/inquiryApi'
+import { LanguageProvider } from '@/i18n/LanguageContext'
+import { LANGUAGE_STORAGE_KEY } from '@/i18n/language'
 import ContactPage from './ContactPage'
 
 async function completeRequiredFields() {
@@ -47,5 +49,20 @@ describe('contact page inquiry flow', () => {
       'We could not submit your inquiry. Please try again.',
     )
     expect(screen.getByRole('button', { name: /retry submission/i })).toBeInTheDocument()
+  })
+
+  it('localizes the inquiry form from the active language', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'ja')
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <LanguageProvider detectCountry={() => Promise.resolve(undefined)}>
+          <ContactPage />
+        </LanguageProvider>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { level: 1, name: '歯車プロジェクトについてお聞かせください' })).toBeInTheDocument()
+    expect(screen.getByLabelText(/メールアドレス/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'お問い合わせを送信' })).toBeInTheDocument()
   })
 })

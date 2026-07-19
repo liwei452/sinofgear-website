@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import type { PageSeo } from '@/data/pages'
 import { getSiteUrl } from '@/data/site'
 import { buildCanonicalUrl, buildOrganizationSchema, type JsonLdRecord } from '@/lib/seo'
+import { useLang } from '@/i18n/LanguageContext'
+import type { Lang } from '@/i18n/language'
 
 interface SeoProps {
   seo: PageSeo
@@ -13,6 +15,13 @@ interface SeoProps {
 }
 
 const JSON_LD_ID = 'sinoform-route-schema'
+const openGraphLocales: Record<Lang, string> = {
+  en: 'en_US',
+  de: 'de_DE',
+  ja: 'ja_JP',
+  es: 'es_ES',
+  zh: 'zh_CN',
+}
 
 function setMeta(selector: string, attributes: Record<string, string>) {
   let element = document.head.querySelector<HTMLMetaElement>(selector)
@@ -31,6 +40,7 @@ export default function Seo({
   noIndex = false,
   structuredData = [],
 }: SeoProps) {
+  const { lang } = useLang()
   useEffect(() => {
     const siteUrl = getSiteUrl()
     const canonicalUrl = buildCanonicalUrl(siteUrl, pathname)
@@ -49,6 +59,7 @@ export default function Seo({
     setMeta('meta[property="og:type"]', { property: 'og:type', content: type })
     setMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
     setMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'SINOFORM' })
+    setMeta('meta[property="og:locale"]', { property: 'og:locale', content: openGraphLocales[lang] })
 
     if (image) {
       setMeta('meta[property="og:image"]', {
@@ -82,7 +93,7 @@ export default function Seo({
     return () => {
       document.getElementById(JSON_LD_ID)?.remove()
     }
-  }, [image, noIndex, pathname, seo.description, seo.title, structuredData, type])
+  }, [image, lang, noIndex, pathname, seo.description, seo.title, structuredData, type])
 
   return null
 }

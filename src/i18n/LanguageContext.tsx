@@ -3,7 +3,7 @@ import {
   htmlLanguageCodes,
 } from '@/data/site'
 import { detectVisitorCountry } from '@/services/geoLanguage'
-import { translate, type MessageKey } from './messages'
+import { localizeText, translate, type MessageKey } from './messages'
 import {
   LANGUAGE_STORAGE_KEY,
   languageFromCountryCode,
@@ -15,12 +15,14 @@ interface LangCtx {
   lang: Lang
   setLang: (l: Lang) => void
   t: (key: MessageKey) => string
+  text: (value: string) => string
 }
 
 const Ctx = createContext<LangCtx>({
   lang: 'en',
   setLang: () => {},
   t: (key) => translate('en', key),
+  text: (value) => value,
 })
 
 interface LanguageProviderProps {
@@ -70,7 +72,14 @@ export function LanguageProvider({
   }, [lang])
 
   return (
-    <Ctx.Provider value={{ lang, setLang, t: (key) => translate(lang, key) }}>
+    <Ctx.Provider
+      value={{
+        lang,
+        setLang,
+        t: (key) => translate(lang, key),
+        text: (value) => localizeText(value, lang),
+      }}
+    >
       {children}
     </Ctx.Provider>
   )

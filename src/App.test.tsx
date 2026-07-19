@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { LANGUAGE_STORAGE_KEY } from '@/i18n/language'
 import App from './App'
 
 function renderRoute(route: string) {
@@ -12,6 +13,8 @@ function renderRoute(route: string) {
 }
 
 describe('public routes', () => {
+  beforeEach(() => localStorage.clear())
+
   it.each([
     ['/products', 'Explore Custom Gear Categories'],
     ['/capabilities', 'A Drawing-Led Manufacturing Review'],
@@ -22,5 +25,19 @@ describe('public routes', () => {
   ])('renders %s as a distinct page', (route, heading) => {
     renderRoute(route)
     expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+  })
+
+  it('localizes visible page content and SEO from a saved language', () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'zh')
+    renderRoute('/products')
+
+    expect(screen.getByRole('heading', { level: 1, name: '探索定制齿轮产品' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: '产品' }).length).toBeGreaterThan(0)
+    expect(document.title).toBe('定制齿轮产品 | SINOFORM')
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      'content',
+      expect.stringContaining('直齿轮'),
+    )
+    expect(document.querySelector('meta[property="og:locale"]')).toHaveAttribute('content', 'zh_CN')
   })
 })

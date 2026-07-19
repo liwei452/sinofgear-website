@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { inquiryCopy, inquiryOptions } from '@/data/pages'
-import { products, type ProductSlug } from '@/data/products'
+import { localizeProduct, products, type ProductSlug } from '@/data/products'
 import {
   createEmptyInquiry,
   validateInquiry,
@@ -13,6 +13,8 @@ import {
   type InquiryValues,
 } from '@/lib/inquiry'
 import { submitInquiry, type InquiryResult } from '@/services/inquiryApi'
+import { useLang } from '@/i18n/LanguageContext'
+import { localizeValue } from '@/i18n/messages'
 
 export type InquirySubmitter = (values: InquiryValues) => Promise<InquiryResult>
 
@@ -30,6 +32,10 @@ export default function InquiryForm({
   initialProduct = '',
   submitter = submitInquiry,
 }: InquiryFormProps) {
+  const { lang, text, t } = useLang()
+  const copy = localizeValue(inquiryCopy, lang)
+  const options = localizeValue(inquiryOptions, lang)
+  const localizedProducts = products.map((product) => localizeProduct(product, lang))
   const [values, setValues] = useState<InquiryValues>(() => createEmptyInquiry(initialProduct))
   const [errors, setErrors] = useState<InquiryErrors>({})
   const [status, setStatus] = useState<FormStatus>('idle')
@@ -85,14 +91,14 @@ export default function InquiryForm({
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
           <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
         </span>
-        <h2 className="mt-6 text-2xl font-extrabold">{inquiryCopy.successTitle}</h2>
-        <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{inquiryCopy.successMessage}</p>
+        <h2 className="mt-6 text-2xl font-extrabold">{t('status.successTitle')}</h2>
+        <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{copy.successMessage}</p>
         <p className="mt-4 rounded-lg bg-accent px-4 py-2 font-mono text-sm font-bold text-primary">
-          Reference: {result.reference}
+          {t('status.reference')}: {result.reference}
         </p>
         <Button type="button" variant="outline" className="mt-7 gap-2" onClick={reset}>
           <RotateCcw className="h-4 w-4" />
-          {inquiryCopy.reset}
+          {t('action.reset')}
         </Button>
       </div>
     )
@@ -101,7 +107,7 @@ export default function InquiryForm({
   const fieldError = (field: keyof InquiryValues) =>
     errors[field] ? (
       <p id={`${field}-error`} className="text-xs font-medium text-destructive">
-        {errors[field]}
+        {text(errors[field] ?? '')}
       </p>
     ) : null
 
@@ -112,9 +118,9 @@ export default function InquiryForm({
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
             <div>
-              <p className="font-bold">{failureMessage}</p>
+              <p className="font-bold">{text(failureMessage)}</p>
               <Button type="button" variant="outline" size="sm" className="mt-3" onClick={submitValues}>
-                {inquiryCopy.retry}
+                {t('action.retry')}
               </Button>
             </div>
           </div>
@@ -123,44 +129,44 @@ export default function InquiryForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">{inquiryCopy.fields.name} *</Label>
+          <Label htmlFor="name">{copy.fields.name} *</Label>
           <Input
             id="name"
             value={values.name}
             onChange={(event) => setField('name', event.target.value)}
-            placeholder={inquiryCopy.placeholders.name}
+            placeholder={copy.placeholders.name}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? 'name-error' : undefined}
           />
           {fieldError('name')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="company">{inquiryCopy.fields.company} *</Label>
+          <Label htmlFor="company">{copy.fields.company} *</Label>
           <Input
             id="company"
             value={values.company}
             onChange={(event) => setField('company', event.target.value)}
-            placeholder={inquiryCopy.placeholders.company}
+            placeholder={copy.placeholders.company}
             aria-invalid={Boolean(errors.company)}
             aria-describedby={errors.company ? 'company-error' : undefined}
           />
           {fieldError('company')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">{inquiryCopy.fields.email} *</Label>
+          <Label htmlFor="email">{copy.fields.email} *</Label>
           <Input
             id="email"
             type="email"
             value={values.email}
             onChange={(event) => setField('email', event.target.value)}
-            placeholder={inquiryCopy.placeholders.email}
+            placeholder={copy.placeholders.email}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? 'email-error' : undefined}
           />
           {fieldError('email')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="country">{inquiryCopy.fields.country} *</Label>
+          <Label htmlFor="country">{copy.fields.country} *</Label>
           <select
             id="country"
             value={values.country}
@@ -169,15 +175,15 @@ export default function InquiryForm({
             aria-invalid={Boolean(errors.country)}
             aria-describedby={errors.country ? 'country-error' : undefined}
           >
-            <option value="">Select a country</option>
-            {inquiryOptions.countries.map((country) => (
-              <option key={country} value={country}>{country}</option>
+            <option value="">{text('Select a country')}</option>
+            {inquiryOptions.countries.map((country, index) => (
+              <option key={country} value={country}>{options.countries[index]}</option>
             ))}
           </select>
           {fieldError('country')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="product">{inquiryCopy.fields.product} *</Label>
+          <Label htmlFor="product">{copy.fields.product} *</Label>
           <select
             id="product"
             value={values.product}
@@ -186,38 +192,38 @@ export default function InquiryForm({
             aria-invalid={Boolean(errors.product)}
             aria-describedby={errors.product ? 'product-error' : undefined}
           >
-            <option value="">Select a product</option>
-            {products.map((product) => (
+            <option value="">{text('Select a product')}</option>
+            {localizedProducts.map((product) => (
               <option key={product.slug} value={product.slug}>{product.shortName}</option>
             ))}
           </select>
           {fieldError('product')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="quantity">{inquiryCopy.fields.quantity}</Label>
+          <Label htmlFor="quantity">{copy.fields.quantity}</Label>
           <Input
             id="quantity"
             value={values.quantity}
             onChange={(event) => setField('quantity', event.target.value)}
-            placeholder={inquiryCopy.placeholders.quantity}
+            placeholder={copy.placeholders.quantity}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="material">{inquiryCopy.fields.material}</Label>
+          <Label htmlFor="material">{copy.fields.material}</Label>
           <select
             id="material"
             value={values.material}
             onChange={(event) => setField('material', event.target.value)}
             className={selectClassName}
           >
-            <option value="">{inquiryCopy.placeholders.material}</option>
-            {inquiryOptions.materials.map((material) => (
-              <option key={material} value={material}>{material}</option>
+            <option value="">{copy.placeholders.material}</option>
+            {inquiryOptions.materials.map((material, index) => (
+              <option key={material} value={material}>{options.materials[index]}</option>
             ))}
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="drawing">{inquiryCopy.fields.drawing}</Label>
+          <Label htmlFor="drawing">{copy.fields.drawing}</Label>
           <div className="relative">
             <FileUp className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -233,31 +239,31 @@ export default function InquiryForm({
       </div>
 
       <div className="mt-5 space-y-2">
-        <Label htmlFor="message">{inquiryCopy.fields.message} *</Label>
+        <Label htmlFor="message">{copy.fields.message} *</Label>
         <Textarea
           id="message"
           rows={6}
           value={values.message}
           onChange={(event) => setField('message', event.target.value)}
-          placeholder={inquiryCopy.placeholders.message}
+          placeholder={copy.placeholders.message}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={errors.message ? 'message-error' : undefined}
         />
         {fieldError('message')}
       </div>
 
-      <p className="mt-4 text-xs leading-6 text-muted-foreground">{inquiryCopy.drawingNote}</p>
+      <p className="mt-4 text-xs leading-6 text-muted-foreground">{copy.drawingNote}</p>
 
       <Button type="submit" size="lg" disabled={status === 'submitting'} className="mt-6 h-12 w-full gap-2 font-bold">
         {status === 'submitting' ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" />
-            {inquiryCopy.submitting}
+            {t('action.submitting')}
           </>
         ) : (
           <>
             <Send className="h-5 w-5" />
-            {inquiryCopy.submit}
+            {t('action.submit')}
           </>
         )}
       </Button>

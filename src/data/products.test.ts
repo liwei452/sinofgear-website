@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { products } from './products'
+import { localizeProduct, products } from './products'
 
 describe('product configuration', () => {
   it('defines the six requested product routes', () => {
@@ -27,6 +27,17 @@ describe('product configuration', () => {
       expect(product.faq.length).toBeGreaterThan(0)
       expect(product.seo.title).toBeTruthy()
       expect(product.seo.description).toBeTruthy()
+    }
+  })
+
+  it('provides localized names and value propositions for every supported locale', () => {
+    for (const product of products) {
+      for (const lang of ['de', 'ja', 'es', 'zh'] as const) {
+        const localized = localizeProduct(product, lang)
+        expect(localized.name).not.toBe(product.name)
+        expect(localized.shortName).not.toBe(product.shortName)
+        expect(localized.valueProposition).not.toBe(product.valueProposition)
+      }
     }
   })
 })

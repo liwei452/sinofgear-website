@@ -353,3 +353,14 @@ export function getProductBySlug(slug: string | undefined): Product | undefined 
 export function isProductSlug(value: string): value is ProductSlug {
   return productSlugs.includes(value as ProductSlug)
 }
+
+export function localizeProduct(product: Product, lang: Lang): Product {
+  if (lang === 'en') return product
+  return {
+    slug: product.slug,
+    image: product.image,
+    ...productTranslations[lang][product.slug],
+  }
+}
+import type { Lang } from '@/i18n/language'
+import { productTranslations } from './productTranslations'
