@@ -7,6 +7,9 @@ import Seo from '@/components/Seo'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ProductsPage from '@/pages/ProductsPage'
 import ProductDetailPage from '@/pages/ProductDetailPage'
+import HomePage from '@/pages/HomePage'
+import CapabilitiesPage from '@/pages/CapabilitiesPage'
+import QualityPage from '@/pages/QualityPage'
 
 function BasicPage({ page }: { page: 'home' | 'products' | 'capabilities' | 'quality' | 'contact' }) {
   const content = pages[page]
@@ -23,11 +26,11 @@ export default function App() {
     <LanguageProvider>
       <Routes>
         <Route element={<SiteLayout />}>
-          <Route index element={<BasicPage page="home" />} />
+          <Route index element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="products/:slug" element={<ProductDetailPage />} />
-          <Route path="capabilities" element={<BasicPage page="capabilities" />} />
-          <Route path="quality" element={<BasicPage page="quality" />} />
+          <Route path="capabilities" element={<CapabilitiesPage />} />
+          <Route path="quality" element={<QualityPage />} />
           <Route path="contact" element={<BasicPage page="contact" />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
