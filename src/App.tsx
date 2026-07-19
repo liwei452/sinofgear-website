@@ -1,45 +1,55 @@
-import { useState } from 'react'
+import { Route, Routes } from 'react-router'
+import SiteLayout from '@/components/SiteLayout'
 import { LanguageProvider } from '@/i18n/LanguageContext'
-import { useReveal } from '@/hooks/useReveal'
-import Header from '@/sections/Header'
-import Hero from '@/sections/Hero'
-import Products from '@/sections/Products'
-import Capabilities from '@/sections/Capabilities'
-import Quality from '@/sections/Quality'
-import Industries from '@/sections/Industries'
-import Process from '@/sections/Process'
-import Faq from '@/sections/Faq'
-import Inquiry from '@/sections/Inquiry'
-import Footer from '@/sections/Footer'
-import FloatingCta from '@/sections/FloatingCta'
+import { pages } from '@/data/pages'
+import { getProductBySlug } from '@/data/products'
+import { useParams } from 'react-router'
+import PageHero from '@/components/PageHero'
+import Seo from '@/components/Seo'
+import NotFoundPage from '@/pages/NotFoundPage'
 
-function Site() {
-  const [product, setProduct] = useState('')
-  const ref = useReveal<HTMLDivElement>()
+function BasicPage({ page }: { page: 'home' | 'products' | 'capabilities' | 'quality' | 'contact' }) {
+  const content = pages[page]
+  return (
+    <>
+      <Seo seo={content.seo} pathname={page === 'home' ? '/' : `/${page}`} />
+      <PageHero eyebrow={content.eyebrow} title={content.title} subtitle={content.subtitle} />
+    </>
+  )
+}
+
+function BasicProductPage() {
+  const { slug } = useParams()
+  const product = getProductBySlug(slug)
+  if (!product) return <NotFoundPage />
 
   return (
-    <div ref={ref} className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <Hero />
-        <Products onInquire={setProduct} />
-        <Capabilities />
-        <Quality />
-        <Industries />
-        <Process />
-        <Faq />
-        <Inquiry product={product} setProduct={setProduct} />
-      </main>
-      <Footer />
-      <FloatingCta />
-    </div>
+    <>
+      <Seo
+        seo={product.seo}
+        pathname={`/products/${product.slug}`}
+        type="product"
+        image={product.image}
+      />
+      <PageHero eyebrow="Custom product" title={product.name} subtitle={product.valueProposition} />
+    </>
   )
 }
 
 export default function App() {
   return (
     <LanguageProvider>
-      <Site />
+      <Routes>
+        <Route element={<SiteLayout />}>
+          <Route index element={<BasicPage page="home" />} />
+          <Route path="products" element={<BasicPage page="products" />} />
+          <Route path="products/:slug" element={<BasicProductPage />} />
+          <Route path="capabilities" element={<BasicPage page="capabilities" />} />
+          <Route path="quality" element={<BasicPage page="quality" />} />
+          <Route path="contact" element={<BasicPage page="contact" />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
     </LanguageProvider>
   )
 }

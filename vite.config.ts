@@ -4,9 +4,9 @@ import { defineConfig } from "vitest/config"
 import { inspectAttr } from 'kimi-plugin-inspect-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './',
-  plugins: [inspectAttr(), react()],
+  plugins: [mode === 'test' ? null : inspectAttr(), react()],
   server: {
     port: 3000,
   },
@@ -19,4 +19,4 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
   },
-});
+}))
