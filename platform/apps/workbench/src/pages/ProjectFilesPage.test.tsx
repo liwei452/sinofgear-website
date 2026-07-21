@@ -29,6 +29,7 @@ describe('ProjectFilesPage', () => {
     expect(screen.getByText('版本 2')).toBeInTheDocument()
     expect(screen.getByText('项目成员')).toBeInTheDocument()
     expect(screen.getByText('待提取')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '开始 AI 提取' })).toBeInTheDocument()
   })
 
   it.each([

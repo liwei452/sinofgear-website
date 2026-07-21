@@ -46,6 +46,9 @@ export function ProjectFilesPage() {
     queryKey: ['project-files', projectId],
     queryFn: () => apiRequest<FileListResponse>(`/projects/${projectId}/files`),
     enabled: Boolean(projectId),
+    refetchInterval: (query) => query.state.data?.items.some(
+      (item) => item.extractionStatus === '等待提取' || item.extractionStatus === '正在提取',
+    ) ? 1500 : false,
   })
   const upload = useMutation({
     mutationFn: (file: File) => {
@@ -58,6 +61,15 @@ export function ProjectFilesPage() {
       if (inputRef.current) inputRef.current.value = ''
       await queryClient.invalidateQueries({ queryKey: ['project-files', projectId] })
       await queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+    },
+  })
+  const extract = useMutation({
+    mutationFn: (fileId: string) => apiRequest<{ taskId: string; status: string }>(
+      `/projects/${projectId}/files/${fileId}/extractions`,
+      { method: 'POST' },
+    ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['project-files', projectId] })
     },
   })
 
@@ -113,6 +125,7 @@ export function ProjectFilesPage() {
             </button>
           </form>
           {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
+          {extract.isError && <p className="form-error" role="alert">AI 提取任务启动失败，请稍后重试。</p>}
         </section>
       )}
 
@@ -139,7 +152,19 @@ export function ProjectFilesPage() {
                     <td>{file.uploaderName}</td>
                     <td>{new Date(file.uploadedAt).toLocaleString('zh-CN')}</td>
                     <td><span className="status-pill">{file.extractionStatus}</span></td>
-                    <td><button className="table-action" type="button" onClick={() => void download(file.id)}>下载</button></td>
+                    <td className="table-actions">
+                      {canUpload && (file.extractionStatus === '待提取' || file.extractionStatus === '提取失败') && (
+                        <button
+                          className="table-action"
+                          type="button"
+                          disabled={extract.isPending && extract.variables === file.id}
+                          onClick={() => extract.mutate(file.id)}
+                        >
+                          {file.extractionStatus === '提取失败' ? '重新提取' : '开始 AI 提取'}
+                        </button>
+                      )}
+                      <button className="table-action" type="button" onClick={() => void download(file.id)}>下载</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

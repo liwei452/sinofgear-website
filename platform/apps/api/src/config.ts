@@ -6,6 +6,9 @@ const configSchema = z.object({
   DATABASE_URL: z.string().default('file:../../var/workbench.db'),
   FILE_STORAGE_ROOT: z.string().default('./var/files'),
   DOWNLOAD_TOKEN_SECRET: z.string().min(32).default('local-download-token-secret-change-me'),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().min(1).default('gpt-5.6-terra'),
+  AI_PROVIDER: z.enum(['fake', 'openai']).default('fake'),
   SEED_ADMIN_EMAIL: z.email().default('admin@example.com'),
   SEED_ADMIN_PASSWORD: z.string().min(16).default('ChangeMe-Local-Only-123!'),
 })

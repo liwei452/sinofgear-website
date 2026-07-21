@@ -5,6 +5,7 @@ import { registerAuthRoutes, type AuthService } from './routes/auth.js'
 import { registerFileRoutes, type SqliteFileRepository } from './routes/files.js'
 import { registerProjectRoutes, type ProjectRepository } from './routes/projects.js'
 import type { FileStorage } from './storage/fileStorage.js'
+import type { SqliteAiTaskRepository } from './jobs/taskRepository.js'
 
 const unavailableAuthService: AuthService = {
   async login() { return null },
@@ -17,6 +18,7 @@ export interface BuildAppOptions {
   projectRepository?: ProjectRepository
   fileRepository?: SqliteFileRepository
   fileStorage?: FileStorage
+  taskRepository?: SqliteAiTaskRepository
 }
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -41,6 +43,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
       options.projectRepository,
       options.fileRepository,
       options.fileStorage,
+      options.taskRepository,
     )
   }
 

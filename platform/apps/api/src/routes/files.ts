@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDatabase } from '../db/database.js'
 import { sessionCookieName } from '../auth/session.js'
 import type { FileStorage } from '../storage/fileStorage.js'
+import type { SqliteAiTaskRepository } from '../jobs/taskRepository.js'
 import type { AuthService, AuthenticatedUser } from './auth.js'
 import type { ProjectRepository } from './projects.js'
 
@@ -59,6 +60,7 @@ function extractionStatus(taskStatus: string | null) {
   return ({
     QUEUED: '等待提取',
     RUNNING: '正在提取',
+    SUCCEEDED: '提取完成',
     COMPLETED: '提取完成',
     FAILED: '提取失败',
   } as Record<string, string>)[taskStatus ?? ''] ?? '待提取'
@@ -201,6 +203,7 @@ export async function registerFileRoutes(
   projectRepository: ProjectRepository,
   fileRepository: SqliteFileRepository,
   storage: FileStorage,
+  taskRepository?: SqliteAiTaskRepository,
 ) {
   app.get<{ Params: { projectId: string } }>('/projects/:projectId/files', async (request, reply) => {
     const user = await authenticatedUser(request, reply, authService)
@@ -274,6 +277,58 @@ export async function registerFileRoutes(
       if (!asset) return reply.code(404).send({ code: 'FILE_NOT_FOUND', message: '文件不存在' })
       const token = await storage.createDownloadToken(asset.storageKey, downloadLifetimeSeconds)
       return { url: `/api/downloads/${encodeURIComponent(token)}`, expiresInSeconds: downloadLifetimeSeconds }
+    },
+  )
+
+  app.post<{ Params: { projectId: string; fileId: string } }>(
+    '/projects/:projectId/files/:fileId/extractions',
+    async (request, reply) => {
+      const user = await authenticatedUser(request, reply, authService)
+      if (!user) return
+      const project = await projectRepository.getForUser(request.params.projectId, user)
+      if (!project) return reply.code(404).send({ code: 'PROJECT_NOT_FOUND', message: '项目不存在' })
+      if (project.membershipRole === 'VIEWER') {
+        return reply.code(403).send({ code: 'FORBIDDEN', message: '只读成员不能启动 AI 提取' })
+      }
+      const asset = await fileRepository.get(project.id, request.params.fileId)
+      if (!asset) return reply.code(404).send({ code: 'FILE_NOT_FOUND', message: '文件不存在' })
+      if (!taskRepository) {
+        return reply.code(503).send({ code: 'TASK_QUEUE_UNAVAILABLE', message: 'AI 任务队列暂不可用' })
+      }
+      const task = await taskRepository.enqueue({
+        projectId: project.id,
+        sourceFileId: asset.id,
+        sourceFileVersion: asset.version,
+        type: 'CAPABILITY_EXTRACTION',
+        promptVersion: 'capability-v1',
+      })
+      return reply.code(task.status === 'SUCCEEDED' ? 200 : 202).send({
+        taskId: task.id,
+        status: task.status,
+      })
+    },
+  )
+
+  app.get<{ Params: { projectId: string; taskId: string } }>(
+    '/projects/:projectId/tasks/:taskId',
+    async (request, reply) => {
+      const user = await authenticatedUser(request, reply, authService)
+      if (!user) return
+      const project = await projectRepository.getForUser(request.params.projectId, user)
+      if (!project) return reply.code(404).send({ code: 'PROJECT_NOT_FOUND', message: '项目不存在' })
+      if (!taskRepository) {
+        return reply.code(503).send({ code: 'TASK_QUEUE_UNAVAILABLE', message: 'AI 任务队列暂不可用' })
+      }
+      const task = await taskRepository.findForProject(project.id, request.params.taskId)
+      if (!task) return reply.code(404).send({ code: 'TASK_NOT_FOUND', message: '任务不存在' })
+      return {
+        id: task.id,
+        status: task.status,
+        attempts: task.attempts,
+        errorCode: task.errorCode,
+        nextAttemptAt: task.nextAttemptAt,
+        finishedAt: task.finishedAt,
+      }
     },
   )
 

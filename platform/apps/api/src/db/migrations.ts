@@ -212,6 +212,12 @@ const migrations: Migration[] = [
       CREATE INDEX audit_events_actor_id_idx ON audit_events(actor_id);
     `,
   },
+  {
+    version: 2,
+    sql: `
+      ALTER TABLE ai_tasks ADD COLUMN attempt_log_json TEXT NOT NULL DEFAULT '[]';
+    `,
+  },
 ]
 
 export function runMigrations(database: AppDatabase) {

@@ -7,6 +7,7 @@ import { runMigrations } from './db/migrations.js'
 import { SqliteProjectRepository } from './routes/projects.js'
 import { SqliteFileRepository } from './routes/files.js'
 import { LocalFileStorage } from './storage/localFileStorage.js'
+import { SqliteAiTaskRepository } from './jobs/taskRepository.js'
 
 const config = loadConfig()
 const database = openDatabase(databasePathFromUrl(config.DATABASE_URL))
@@ -18,6 +19,7 @@ const app = await buildApp({
   projectRepository,
   fileRepository: new SqliteFileRepository(database),
   fileStorage: new LocalFileStorage(config.FILE_STORAGE_ROOT, config.DOWNLOAD_TOKEN_SECRET),
+  taskRepository: new SqliteAiTaskRepository(database),
 })
 app.addHook('onClose', async () => database.close())
 

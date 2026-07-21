@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildApp } from '../app.js'
 import { openDatabase } from '../db/database.js'
 import { runMigrations } from '../db/migrations.js'
+import { SqliteAiTaskRepository } from '../jobs/taskRepository.js'
 import type { FileStorage, StoredObject } from '../storage/fileStorage.js'
 import { maximumFileSize, SqliteFileRepository } from './files.js'
 import { SqliteProjectRepository } from './projects.js'
@@ -90,6 +91,7 @@ async function createTestApp() {
     projectRepository,
     fileRepository: new SqliteFileRepository(database),
     fileStorage: storage,
+    taskRepository: new SqliteAiTaskRepository(database),
   })
   return { app, database, storage }
 }
@@ -186,6 +188,35 @@ describe('file routes', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json()).toMatchObject({ expiresInSeconds: 300 })
     expect(response.json().url).toMatch(/^\/api\/downloads\//)
+    await app.close()
+    database.close()
+  })
+
+  it('queues one idempotent capability extraction task per file version', async () => {
+    const { app, database } = await createTestApp()
+    const payload = multipart('catalog.pdf', 'application/pdf', Buffer.from('%PDF-1.7 extract'))
+    const uploaded = await app.inject({
+      method: 'POST', url: '/projects/project-1/files',
+      headers: { cookie: 'workbench_session=valid-token', 'content-type': payload.contentType },
+      payload: payload.body,
+    })
+    const enqueue = () => app.inject({
+      method: 'POST',
+      url: `/projects/project-1/files/${uploaded.json().id}/extractions`,
+      headers: { cookie: 'workbench_session=valid-token' },
+    })
+    const first = await enqueue()
+    const second = await enqueue()
+
+    expect(first.statusCode).toBe(202)
+    expect(first.json()).toMatchObject({ status: 'QUEUED' })
+    expect(second.json().taskId).toBe(first.json().taskId)
+    const status = await app.inject({
+      method: 'GET',
+      url: `/projects/project-1/tasks/${first.json().taskId}`,
+      headers: { cookie: 'workbench_session=valid-token' },
+    })
+    expect(status.json()).toMatchObject({ id: first.json().taskId, status: 'QUEUED' })
     await app.close()
     database.close()
   })
