@@ -5,14 +5,19 @@ import { loadConfig } from './config.js'
 import { databasePathFromUrl, openDatabase } from './db/database.js'
 import { runMigrations } from './db/migrations.js'
 import { SqliteProjectRepository } from './routes/projects.js'
+import { SqliteFileRepository } from './routes/files.js'
+import { LocalFileStorage } from './storage/localFileStorage.js'
 
 const config = loadConfig()
 const database = openDatabase(databasePathFromUrl(config.DATABASE_URL))
 runMigrations(database)
 const authService = new DatabaseAuthService(new SqliteAuthRepository(database))
+const projectRepository = new SqliteProjectRepository(database)
 const app = await buildApp({
   authService,
-  projectRepository: new SqliteProjectRepository(database),
+  projectRepository,
+  fileRepository: new SqliteFileRepository(database),
+  fileStorage: new LocalFileStorage(config.FILE_STORAGE_ROOT, config.DOWNLOAD_TOKEN_SECRET),
 })
 app.addHook('onClose', async () => database.close())
 

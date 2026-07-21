@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
+    "@fastify/multipart": "^10.1.0",
     "@workbench/contracts": "workspace:*",
     "bcryptjs": "^3.0.2",
     "fastify": "^5.6.2",

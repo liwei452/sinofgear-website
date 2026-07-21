@@ -5,6 +5,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { LoginPage } from '../pages/LoginPage'
 import { ProjectListPage } from '../pages/ProjectListPage'
 import { ProjectOverviewPage } from '../pages/ProjectOverviewPage'
+import { ProjectFilesPage } from '../pages/ProjectFilesPage'
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
         { path: '/', element: <DashboardPage /> },
         { path: '/projects', element: <ProjectListPage /> },
         { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
+        { path: '/projects/:projectId/files', element: <ProjectFilesPage /> },
       ],
     }],
   },
