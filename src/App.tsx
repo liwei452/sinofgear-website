@@ -8,21 +8,24 @@ import HomePage from '@/pages/HomePage'
 import CapabilitiesPage from '@/pages/CapabilitiesPage'
 import QualityPage from '@/pages/QualityPage'
 import ContactPage from '@/pages/ContactPage'
+import { CustomerServiceProvider } from '@/customerService/CustomerServiceContext'
 
 export default function App() {
   return (
     <LanguageProvider>
-      <Routes>
-        <Route element={<SiteLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="products/:slug" element={<ProductDetailPage />} />
-          <Route path="capabilities" element={<CapabilitiesPage />} />
-          <Route path="quality" element={<QualityPage />} />
-          <Route path="contact" element={<ContactPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+      <CustomerServiceProvider>
+        <Routes>
+          <Route element={<SiteLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="products/:slug" element={<ProductDetailPage />} />
+            <Route path="capabilities" element={<CapabilitiesPage />} />
+            <Route path="quality" element={<QualityPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </CustomerServiceProvider>
     </LanguageProvider>
   )
 }
