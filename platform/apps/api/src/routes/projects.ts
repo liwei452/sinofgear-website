@@ -29,6 +29,13 @@ export interface FactoryProjectSummary {
   nextAction: string
   updatedAt: string
   membershipRole: 'ADMIN' | 'MEMBER' | 'VIEWER'
+  fileCount: number
+  failedTaskCount: number
+  extractionPendingCount: number
+  pendingCapabilities: number
+  insufficientEvidenceCount: number
+  primaryMarketCount: number
+  selectedDirection: string | null
 }
 
 export interface FactoryProjectDetails extends FactoryProjectSummary {
@@ -69,6 +76,11 @@ interface ProjectRow {
   file_count: number
   reviewed_capability_count: number
   primary_market_count: number
+  failed_task_count: number
+  extraction_pending_count: number
+  pending_capability_count: number
+  insufficient_evidence_count: number
+  selected_direction: string | null
 }
 
 function roleFromRow(row: ProjectRow, user: AuthenticatedUser) {
@@ -77,10 +89,16 @@ function roleFromRow(row: ProjectRow, user: AuthenticatedUser) {
   return 'MEMBER' as const
 }
 
-function nextAction(row: ProjectRow) {
-  if (row.file_count === 0) return '上传首份产品资料'
-  if (row.reviewed_capability_count === 0) return '审核待确认能力'
-  if (row.primary_market_count === 0) return '选择主验证市场方向'
+export function getNextAction(input: {
+  failedTaskCount: number; fileCount: number; extractionPendingCount: number
+  pendingCapabilities: number; insufficientEvidenceCount: number; primaryMarketCount: number
+}) {
+  if (input.failedTaskCount > 0) return `重试 ${input.failedTaskCount} 个失败的 AI 任务`
+  if (input.fileCount === 0) return '上传首份产品资料'
+  if (input.extractionPendingCount > 0) return `处理 ${input.extractionPendingCount} 份待提取资料`
+  if (input.pendingCapabilities > 0) return `审核 ${input.pendingCapabilities} 条待确认能力`
+  if (input.insufficientEvidenceCount > 0) return `为 ${input.insufficientEvidenceCount} 个候选方向补充市场证据`
+  if (input.primaryMarketCount === 0) return '选择主验证市场方向'
   return '第一阶段已完成'
 }
 
@@ -100,9 +118,16 @@ function toDetails(row: ProjectRow, user: AuthenticatedUser): FactoryProjectDeta
       reviewedCapabilityCount: row.reviewed_capability_count,
       primaryMarketCount: row.primary_market_count,
     }),
-    nextAction: nextAction(row),
+    nextAction: getNextAction({ failedTaskCount: row.failed_task_count, fileCount: row.file_count, extractionPendingCount: row.extraction_pending_count, pendingCapabilities: row.pending_capability_count, insufficientEvidenceCount: row.insufficient_evidence_count, primaryMarketCount: row.primary_market_count }),
     updatedAt: row.updated_at,
     membershipRole: roleFromRow(row, user),
+    fileCount: row.file_count,
+    failedTaskCount: row.failed_task_count,
+    extractionPendingCount: row.extraction_pending_count,
+    pendingCapabilities: row.pending_capability_count,
+    insufficientEvidenceCount: row.insufficient_evidence_count,
+    primaryMarketCount: row.primary_market_count,
+    selectedDirection: row.selected_direction,
   }
 }
 
@@ -115,7 +140,21 @@ const projectSelect = `
     (SELECT COUNT(*) FROM market_decisions d
       WHERE d.project_id = p.id
         AND NOT EXISTS (SELECT 1 FROM market_decisions newer WHERE newer.supersedes_decision_id = d.id)
-    ) AS primary_market_count
+    ) AS primary_market_count,
+    (SELECT COUNT(*) FROM ai_tasks t WHERE t.project_id = p.id AND t.status = 'FAILED') AS failed_task_count,
+    (SELECT COUNT(*) FROM file_assets f2 WHERE f2.project_id = p.id AND NOT EXISTS (
+      SELECT 1 FROM ai_tasks t2 WHERE t2.source_file_id = f2.id AND t2.status = 'SUCCEEDED'
+    )) AS extraction_pending_count,
+    (SELECT COUNT(*) FROM capabilities c2 WHERE c2.project_id = p.id AND c2.review_status = 'PENDING_REVIEW'
+      AND NOT EXISTS (SELECT 1 FROM capabilities newer WHERE newer.supersedes_capability_id = c2.id)
+    ) AS pending_capability_count,
+    (SELECT COUNT(*) FROM market_candidates mc WHERE mc.project_id = p.id AND NOT EXISTS (
+      SELECT 1 FROM market_evidence me WHERE me.candidate_id = mc.id
+    )) AS insufficient_evidence_count,
+    (SELECT mc2.product_focus FROM market_decisions md JOIN market_candidates mc2 ON mc2.id = md.primary_candidate_id
+      WHERE md.project_id = p.id AND NOT EXISTS (SELECT 1 FROM market_decisions newer_d WHERE newer_d.supersedes_decision_id = md.id)
+      ORDER BY md.created_at DESC LIMIT 1
+    ) AS selected_direction
   FROM factory_projects p
   LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = ?
 `

@@ -101,7 +101,7 @@ export function ProjectFilesPage() {
           <h1>资料与能力画像</h1>
           <p>原始资料按项目隔离保存，每次更新都会形成不可覆盖的新版本。</p>
         </div>
-        <Link className="text-link" to={`/projects/${projectId}`}>返回项目概览</Link>
+        <div className="heading-actions"><Link className="text-link" to={`/projects/${projectId}`}>项目概览</Link><Link className="text-link" to={`/projects/${projectId}/capabilities`}>审核能力画像</Link><Link className="text-link" to={`/projects/${projectId}/markets`}>选品与市场</Link></div>
       </div>
 
       {canUpload && (

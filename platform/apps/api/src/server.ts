@@ -12,6 +12,7 @@ import { SqliteAiTaskRepository } from './jobs/taskRepository.js'
 import { SqliteCapabilityRepository } from './routes/capabilities.js'
 import { SqliteMarketRepository } from './routes/markets.js'
 import { FakeMarketGenerator, OpenAiMarketGenerator } from './ai/marketGenerator.js'
+import { SqliteAuditRepository } from './routes/audit.js'
 
 const config = loadConfig()
 const database = openDatabase(databasePathFromUrl(config.DATABASE_URL))
@@ -31,6 +32,7 @@ const app = await buildApp({
   marketRepository: new SqliteMarketRepository(database),
   marketGenerator,
   marketModel: config.AI_PROVIDER === 'openai' ? config.OPENAI_MODEL : 'fake-market-v1',
+  auditRepository: new SqliteAuditRepository(database),
 })
 app.addHook('onClose', async () => database.close())
 

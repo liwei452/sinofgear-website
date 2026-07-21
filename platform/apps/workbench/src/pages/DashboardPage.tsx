@@ -1,9 +1,6 @@
-export function DashboardPage() {
-  return (
-    <main>
-      <span className="eyebrow">OPERATIONS OVERVIEW</span>
-      <h1>AI 外贸精准获客工作台</h1>
-      <p className="lead">从工厂资料出发，以证据驱动选品、市场判断和海外客户开发。</p>
-    </main>
-  )
-}
+import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
+import { apiRequest } from '../api/client'
+
+interface DashboardProject {id:string;name:string;nextAction:string;completeness:number;pendingCapabilities?:number;failedTaskCount?:number;selectedDirection?:string|null}
+export function DashboardPage(){const projects=useQuery({queryKey:['projects'],queryFn:()=>apiRequest<{items:DashboardProject[]}>('/projects')});const items=projects.data?.items??[];const pending=items.reduce((sum,p)=>sum+(p.pendingCapabilities??0),0);const failed=items.reduce((sum,p)=>sum+(p.failedTaskCount??0),0);return<main><span className="eyebrow">OPERATIONS OVERVIEW</span><h1>AI 外贸精准获客工作台</h1><p className="lead">从工厂资料出发，以证据驱动选品、市场判断和海外客户开发。</p>{projects.isPending?<div className="center-state">正在汇总项目…</div>:<><section className="metric-grid"><article><strong>{items.length}</strong><span>{items.length} 个工厂项目</span></article><article><strong>{pending}</strong><span>待审核能力</span></article><article className={failed?'metric-alert':''}><strong>{failed}</strong><span>失败 AI 任务</span></article><article><strong>{items.filter(p=>p.selectedDirection).length}</strong><span>已选主方向</span></article></section><section className="dashboard-projects"><div className="section-title-row"><h2>当前项目</h2><Link className="text-link" to="/projects">查看全部</Link></div>{items.map(p=><Link className="dashboard-project-row" to={`/projects/${p.id}`} key={p.id}><div><strong>{p.name}</strong><span>{p.selectedDirection?`主方向：${p.selectedDirection}`:p.nextAction}</span></div><b>{p.completeness}%</b></Link>)}</section></>}</main>}

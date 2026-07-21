@@ -9,6 +9,7 @@ import type { SqliteAiTaskRepository } from './jobs/taskRepository.js'
 import { registerCapabilityRoutes, type SqliteCapabilityRepository } from './routes/capabilities.js'
 import { registerMarketRoutes, type SqliteMarketRepository } from './routes/markets.js'
 import type { MarketGenerator } from './ai/marketGenerator.js'
+import { registerAuditRoutes, type SqliteAuditRepository } from './routes/audit.js'
 
 const unavailableAuthService: AuthService = {
   async login() { return null },
@@ -26,6 +27,7 @@ export interface BuildAppOptions {
   marketRepository?: SqliteMarketRepository
   marketGenerator?: MarketGenerator
   marketModel?: string
+  auditRepository?: SqliteAuditRepository
 }
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -58,6 +60,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   }
   if (options.projectRepository && options.marketRepository && options.marketGenerator) {
     await registerMarketRoutes(app, options.authService ?? unavailableAuthService, options.projectRepository, options.marketRepository, options.marketGenerator, options.marketModel ?? 'fake-market-v1')
+  }
+  if (options.projectRepository && options.auditRepository) {
+    await registerAuditRoutes(app, options.authService ?? unavailableAuthService, options.projectRepository, options.auditRepository)
   }
 
   return app

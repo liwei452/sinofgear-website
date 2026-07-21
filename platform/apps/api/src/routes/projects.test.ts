@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildApp } from '../app.js'
 import { openDatabase } from '../db/database.js'
 import { runMigrations } from '../db/migrations.js'
-import { calculateProjectCompleteness, SqliteProjectRepository } from './projects.js'
+import { calculateProjectCompleteness, getNextAction, SqliteProjectRepository } from './projects.js'
 import type { AuthService } from './auth.js'
 
 const member = {
@@ -51,6 +51,13 @@ describe('calculateProjectCompleteness', () => {
       reviewedCapabilityCount: 0,
       primaryMarketCount: 0,
     })).toBe(50)
+  })
+})
+
+describe('getNextAction', () => {
+  it('reports the next blocked action in priority order', () => {
+    expect(getNextAction({ failedTaskCount: 0, fileCount: 1, extractionPendingCount: 0, pendingCapabilities: 3, insufficientEvidenceCount: 0, primaryMarketCount: 0 })).toBe('审核 3 条待确认能力')
+    expect(getNextAction({ failedTaskCount: 0, fileCount: 1, extractionPendingCount: 0, pendingCapabilities: 0, insufficientEvidenceCount: 0, primaryMarketCount: 0 })).toBe('选择主验证市场方向')
   })
 })
 
