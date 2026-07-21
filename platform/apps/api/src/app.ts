@@ -1,6 +1,7 @@
 import cookie from '@fastify/cookie'
 import Fastify from 'fastify'
 import { registerAuthRoutes, type AuthService } from './routes/auth.js'
+import { registerProjectRoutes, type ProjectRepository } from './routes/projects.js'
 
 const unavailableAuthService: AuthService = {
   async login() { return null },
@@ -10,6 +11,7 @@ const unavailableAuthService: AuthService = {
 
 export interface BuildAppOptions {
   authService?: AuthService
+  projectRepository?: ProjectRepository
 }
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -23,6 +25,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
     options.authService ?? unavailableAuthService,
     process.env.NODE_ENV === 'production' ? 'production' : 'test',
   )
+  if (options.projectRepository) {
+    await registerProjectRoutes(app, options.authService ?? unavailableAuthService, options.projectRepository)
+  }
 
   return app
 }
