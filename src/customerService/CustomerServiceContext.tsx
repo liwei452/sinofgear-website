@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -70,16 +71,13 @@ export function CustomerServiceProvider({
       product ? { slug: product.slug, name: product.name } : undefined,
     )
   }, [lang, location.pathname, location.search])
+  const initialContextRef = useRef(serviceContext)
 
   useEffect(() => {
-    if (!config) {
-      setStatus('disabled')
-      return
-    }
+    if (!config) return
 
     let active = true
-    setStatus('loading')
-    void adapter.init(config, serviceContext).then(
+    void adapter.init(config, initialContextRef.current).then(
       () => active && setStatus('ready'),
       () => active && setStatus('error'),
     )
@@ -94,13 +92,15 @@ export function CustomerServiceProvider({
     if (config) adapter.setContext(serviceContext)
   }, [adapter, config, serviceContext])
 
+  const effectiveStatus = config ? status : 'disabled'
+
   return (
     <CustomerServiceContext.Provider
       value={{
-        status,
-        open: () => status === 'ready' && adapter.open(),
-        close: () => status === 'ready' && adapter.close(),
-        identify: (visitor) => status === 'ready' && adapter.identify(visitor),
+        status: effectiveStatus,
+        open: () => effectiveStatus === 'ready' && adapter.open(),
+        close: () => effectiveStatus === 'ready' && adapter.close(),
+        identify: (visitor) => effectiveStatus === 'ready' && adapter.identify(visitor),
       }}
     >
       {children}
