@@ -11,6 +11,7 @@ interface FileItem {
   uploadedAt: string
   uploaderName: string
   extractionStatus: string
+  aiExtractionEligible: boolean
 }
 
 interface FileListResponse {
@@ -18,7 +19,7 @@ interface FileListResponse {
   membershipRole?: 'ADMIN' | 'MEMBER' | 'VIEWER'
 }
 
-const maximumFileSize = 50 * 1024 * 1024
+const maximumUploadFileSize = 200 * 1024 * 1024
 
 function formatSize(size: number) {
   if (size < 1024) return `${size} B`
@@ -30,7 +31,7 @@ export function uploadErrorMessage(error: unknown) {
   if (error instanceof ApiError) {
     return ({
       UNSUPPORTED_FILE_TYPE: '不支持这种文件格式，请上传 PDF、Word、Excel、文本或常见图片。',
-      FILE_TOO_LARGE: '文件超过 50 MB，请压缩或拆分后重试。',
+      FILE_TOO_LARGE: '文件超过 200 MB，请压缩或拆分后重试。',
       DUPLICATE_FILE: '这份资料已经上传过，无需重复提交。',
     } as Record<string, string>)[error.body.code] ?? error.body.message
   }
@@ -78,7 +79,7 @@ export function ProjectFilesPage() {
     setLocalError('')
     const file = inputRef.current?.files?.[0]
     if (!file) return setLocalError('请先选择一份工厂资料。')
-    if (file.size > maximumFileSize) return setLocalError('文件超过 50 MB，请压缩或拆分后重试。')
+    if (file.size > maximumUploadFileSize) return setLocalError('文件超过 200 MB，请压缩或拆分后重试。')
     upload.mutate(file)
   }
 
@@ -109,7 +110,7 @@ export function ProjectFilesPage() {
           <div>
             <span className="panel-label">SOURCE INTAKE</span>
             <h2 id="upload-heading">上传工厂资料</h2>
-            <p>支持 PDF、Word、Excel、CSV、文本和常见图片，单个文件不超过 50 MB。</p>
+            <p>支持 PDF、Word、Excel、CSV、文本和常见图片。单个文件最多 200 MB；小于 50 MB 可直接 AI 提取，较大的文件请先拆分或压缩。</p>
           </div>
           <form onSubmit={submitUpload}>
             <label htmlFor="factory-file">选择文件</label>
@@ -151,9 +152,9 @@ export function ProjectFilesPage() {
                     <td>{formatSize(file.size)}</td>
                     <td>{file.uploaderName}</td>
                     <td>{new Date(file.uploadedAt).toLocaleString('zh-CN')}</td>
-                    <td><span className="status-pill">{file.extractionStatus}</span></td>
+                    <td><span className="status-pill">{file.aiExtractionEligible ? file.extractionStatus : '需拆分后提取'}</span></td>
                     <td className="table-actions">
-                      {canUpload && (file.extractionStatus === '待提取' || file.extractionStatus === '提取失败') && (
+                      {canUpload && file.aiExtractionEligible && (file.extractionStatus === '待提取' || file.extractionStatus === '提取失败') && (
                         <button
                           className="table-action"
                           type="button"

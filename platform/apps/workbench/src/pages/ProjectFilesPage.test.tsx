@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../api/client'
 import { ProjectFilesPage, uploadErrorMessage } from './ProjectFilesPage'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('ProjectFilesPage', () => {
   it('shows file versions, uploader and extraction status', async () => {
@@ -13,7 +16,7 @@ describe('ProjectFilesPage', () => {
       items: [{
         id: 'file-1', filename: 'gear-catalog.pdf', version: 2, size: 2048,
         uploadedAt: '2026-07-21T00:00:00.000Z', uploaderName: '项目成员',
-        extractionStatus: '待提取',
+        extractionStatus: '待提取', aiExtractionEligible: true,
       }],
     }), { status: 200, headers: { 'Content-Type': 'application/json' } })))
 
@@ -32,9 +35,31 @@ describe('ProjectFilesPage', () => {
     expect(screen.getByRole('button', { name: '开始 AI 提取' })).toBeInTheDocument()
   })
 
+  it('keeps large files downloadable but does not offer direct AI extraction', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      items: [{
+        id: 'file-large', filename: 'factory-archive.pdf', version: 1, size: 50 * 1024 * 1024,
+        uploadedAt: '2026-07-21T00:00:00.000Z', uploaderName: '项目成员',
+        extractionStatus: '待提取', aiExtractionEligible: false,
+      }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } })))
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/project-1/files']}>
+          <Routes><Route path="/projects/:projectId/files" element={<ProjectFilesPage />} /></Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText('需拆分后提取')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '开始 AI 提取' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '下载' })).toBeInTheDocument()
+  })
+
   it.each([
     ['UNSUPPORTED_FILE_TYPE', '不支持这种文件格式'],
-    ['FILE_TOO_LARGE', '文件超过 50 MB'],
+    ['FILE_TOO_LARGE', '文件超过 200 MB'],
     ['DUPLICATE_FILE', '这份资料已经上传过'],
   ])('explains the %s upload failure in Chinese', (code, message) => {
     expect(uploadErrorMessage(new ApiError(400, { code, message: 'fallback' }))).toContain(message)
