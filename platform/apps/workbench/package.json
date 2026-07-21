@@ -1,0 +1,29 @@
+{
+  "name": "@workbench/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 4173",
+    "test": "vitest run",
+    "build": "tsc --noEmit && vite build",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workbench/contracts": "workspace:*",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router": "^7.6.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.10"
+  }
+}
