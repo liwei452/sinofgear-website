@@ -4,9 +4,9 @@
 
 **Goal:** 交付一个内部可登录的工作台，使团队能够为齿轮工厂建立项目、上传资料、用 AI 提取并人工确认能力、生成和选择产品—市场候选方向。
 
-**Architecture:** 保留仓库根目录的 SINOFORM 对外网站，在 `platform/` 中建立独立的 npm workspace，包含 React 工作台、Fastify API 和共享契约包。PostgreSQL 保存结构化数据和审核历史，S3 兼容对象存储保存原始文件，独立 worker 执行 OpenAI Responses API 的结构化提取任务；AI 通过接口隔离，后续可以替换模型供应商。
+**Architecture:** 保留仓库根目录的 SINOFORM 对外网站，在 `platform/` 中建立独立的 pnpm workspace，包含 React 工作台、Fastify API 和共享契约包。第一阶段使用 SQLite 保存结构化数据和审核历史，使用项目隔离的本地目录保存原始文件；数据库和文件读写保持接口边界，正式多用户部署时迁移到 PostgreSQL 与 S3 兼容对象存储。独立 worker 执行 OpenAI Responses API 的结构化提取任务，AI 通过接口隔离，后续可以替换模型供应商。
 
-**Tech Stack:** TypeScript 5.9、React 19、Vite 7、React Router 7、TanStack Query 5、Fastify 5、Prisma、PostgreSQL 17、MinIO、OpenAI JavaScript SDK、Zod 4、Vitest、Testing Library、Playwright。
+**Tech Stack:** TypeScript 5.9、React 19、Vite 7、React Router 7、TanStack Query 5、Fastify 5、Prisma、SQLite、OpenAI JavaScript SDK、Zod 4、Vitest、Testing Library、Playwright。
 
 ## Global Constraints
 
@@ -36,8 +36,8 @@
 ```text
 platform/
   package.json                     # workspace 命令
-  package-lock.json                # platform 独立依赖锁
-  docker-compose.yml               # PostgreSQL 与 MinIO 本地依赖
+  pnpm-lock.yaml                   # platform 独立依赖锁
+  pnpm-workspace.yaml              # workspace 包范围与构建许可
   .env.example                     # 无密钥的配置样例
   README.md                        # 启动、迁移、worker 与验收说明
   packages/contracts/
@@ -55,8 +55,8 @@ platform/
     src/config.ts                  # 环境变量校验
     src/auth/session.ts            # 不透明 session cookie
     src/auth/authorization.ts      # 角色与项目授权
-    src/storage/objectStorage.ts   # 对象存储接口
-    src/storage/s3Storage.ts       # MinIO/S3 实现
+    src/storage/fileStorage.ts     # 文件存储接口
+    src/storage/localFileStorage.ts # 第一阶段本地目录实现
     src/ai/capabilityExtractor.ts  # AI 能力提取接口
     src/ai/openAiExtractor.ts      # OpenAI Responses 适配器
     src/ai/marketGenerator.ts      # 候选方向生成接口和 OpenAI 适配器
@@ -97,7 +97,7 @@ platform/
 
 **Files:**
 - Create: `platform/package.json`
-- Create: `platform/docker-compose.yml`
+- Create: `platform/pnpm-workspace.yaml`
 - Create: `platform/.env.example`
 - Create: `platform/packages/contracts/package.json`
 - Create: `platform/packages/contracts/src/index.ts`
@@ -116,7 +116,7 @@ platform/
 
 **Interfaces:**
 - Produces: `buildApp(): Promise<FastifyInstance>` and `GET /health -> { status: "ok" }`.
-- Produces: workspace commands `npm run dev`, `npm test`, `npm run build`, `npm run lint`.
+- Produces: workspace commands `pnpm dev`, `pnpm test`, `pnpm build`, `pnpm lint`.
 
 - [ ] **Step 1: Write the failing API and UI smoke tests**
 
@@ -153,8 +153,8 @@ describe('DashboardPage', () => {
 Run from `platform/`:
 
 ```powershell
-npm install
-npm test
+pnpm install
+pnpm test
 ```
 
 Expected: FAIL because `buildApp` and `DashboardPage` do not exist.
@@ -177,13 +177,13 @@ export function DashboardPage() {
 }
 ```
 
-`platform/docker-compose.yml` must define PostgreSQL 17 on port `5433` and MinIO on ports `9000/9001`, use named volumes, create bucket `factory-files`, and read credentials only from `.env`. `platform/.env.example` must contain non-secret local defaults plus `OPENAI_API_KEY=` and `OPENAI_MODEL=gpt-5.6-terra`.
+`platform/pnpm-workspace.yaml` must include `apps/*` and `packages/*` and permit the required esbuild install script. `platform/.env.example` must use a local SQLite URL and local file root, and contain `OPENAI_API_KEY=` plus `OPENAI_MODEL=gpt-5.6-terra` without real secrets.
 
 - [ ] **Step 4: Run smoke verification**
 
 ```powershell
-npm test
-npm run build
+pnpm test
+pnpm build
 ```
 
 Expected: both smoke tests PASS; API and workbench TypeScript builds succeed.
@@ -243,7 +243,7 @@ describe('canAccessProject', () => {
 - [ ] **Step 2: Run the focused test to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/auth/authorization.test.ts
+pnpm --filter @workbench/api test -- src/auth/authorization.test.ts
 ```
 
 Expected: FAIL because `canAccessProject` is missing.
@@ -326,10 +326,9 @@ export function canAccessProject(role: ProjectRole, allowedRoles: ProjectRole[])
 - [ ] **Step 5: Apply migration, seed the administrator, and run tests**
 
 ```powershell
-docker compose up -d postgres minio minio-init
-npm --workspace apps/api run prisma:migrate -- --name initial_workbench
-npm --workspace apps/api run seed
-npm --workspace apps/api test
+pnpm --filter @workbench/api prisma:migrate --name initial_workbench
+pnpm --filter @workbench/api seed
+pnpm --filter @workbench/api test
 ```
 
 Expected: migration succeeds; seed reports one administrator; authorization and health tests PASS.
@@ -337,7 +336,7 @@ Expected: migration succeeds; seed reports one administrator; authorization and 
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add platform/packages platform/apps/api platform/docker-compose.yml
+git add platform/packages platform/apps/api
 git commit -m "feat: add workbench identity and project data model"
 ```
 
@@ -381,7 +380,7 @@ it('rejects unauthenticated project access', async () => {
 - [ ] **Step 2: Run focused tests to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/projects.test.ts
+pnpm --filter @workbench/api test -- src/routes/projects.test.ts
 ```
 
 Expected: FAIL with route not found.
@@ -429,8 +428,8 @@ it('shows project progress and next action', async () => {
 - [ ] **Step 6: Run API and UI tests**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/projects.test.ts
-npm --workspace apps/workbench test -- src/pages/ProjectListPage.test.tsx
+pnpm --filter @workbench/api test -- src/routes/projects.test.ts
+pnpm --filter @workbench/web test -- src/pages/ProjectListPage.test.tsx
 ```
 
 Expected: all focused tests PASS.
@@ -444,11 +443,11 @@ git commit -m "feat: add factory project workspace"
 
 ---
 
-### Task 4: 原始文件上传、对象存储和版本记录
+### Task 4: 原始文件上传、本地隔离存储和版本记录
 
 **Files:**
-- Create: `platform/apps/api/src/storage/objectStorage.ts`
-- Create: `platform/apps/api/src/storage/s3Storage.ts`
+- Create: `platform/apps/api/src/storage/fileStorage.ts`
+- Create: `platform/apps/api/src/storage/localFileStorage.ts`
 - Create: `platform/apps/api/src/routes/files.ts`
 - Create: `platform/apps/api/src/routes/files.test.ts`
 - Modify: `platform/apps/api/src/app.ts`
@@ -457,7 +456,7 @@ git commit -m "feat: add factory project workspace"
 - Modify: `platform/apps/workbench/src/app/router.tsx`
 
 **Interfaces:**
-- Produces: `ObjectStorage.put`, `ObjectStorage.get`, `ObjectStorage.createSignedDownloadUrl`.
+- Produces: `FileStorage.put`, `FileStorage.get`, `FileStorage.createDownloadToken`.
 - Produces: `POST /projects/:projectId/files`, `GET /projects/:projectId/files`, `GET /projects/:projectId/files/:fileId/download`.
 - Produces: immutable `FileAsset` versions and SHA-256 checksum.
 
@@ -481,7 +480,7 @@ it('stores an allowed PDF under the project prefix', async () => {
 - [ ] **Step 2: Run tests to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/files.test.ts
+pnpm --filter @workbench/api test -- src/routes/files.test.ts
 ```
 
 Expected: FAIL because upload routes and storage adapter are absent.
@@ -497,10 +496,10 @@ export interface StoredObject {
   checksum: string
 }
 
-export interface ObjectStorage {
+export interface FileStorage {
   put(input: { key: string; contentType: string; bytes: Buffer }): Promise<StoredObject>
   get(key: string): Promise<Buffer>
-  createSignedDownloadUrl(key: string, expiresInSeconds: number): Promise<string>
+  createDownloadToken(key: string, expiresInSeconds: number): Promise<string>
 }
 ```
 
@@ -513,8 +512,8 @@ The page must show filename, version, size, upload time, uploader, extraction st
 - [ ] **Step 5: Run focused and integration tests**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/files.test.ts
-npm --workspace apps/workbench test -- src/pages/ProjectFilesPage.test.tsx
+pnpm --filter @workbench/api test -- src/routes/files.test.ts
+pnpm --filter @workbench/web test -- src/pages/ProjectFilesPage.test.tsx
 ```
 
 Expected: allowed uploads PASS; invalid type and oversize cases return the documented codes; UI states PASS.
@@ -578,7 +577,7 @@ it('marks the third transient failure as failed', async () => {
 - [ ] **Step 2: Run tests to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/jobs/processTask.test.ts
+pnpm --filter @workbench/api test -- src/jobs/processTask.test.ts
 ```
 
 Expected: FAIL because extractor and task processor are missing.
@@ -622,7 +621,7 @@ return capabilityExtractionSchema.parse(response.output_parsed)
 - [ ] **Step 6: Run provider, worker and API tests**
 
 ```powershell
-npm --workspace apps/api test -- src/ai/openAiExtractor.test.ts src/jobs/processTask.test.ts src/routes/files.test.ts
+pnpm --filter @workbench/api test -- src/ai/openAiExtractor.test.ts src/jobs/processTask.test.ts src/routes/files.test.ts
 ```
 
 Expected: fake provider tests PASS without network; retry stops after three failures; duplicate task request reuses the existing task.
@@ -679,7 +678,7 @@ it('prevents viewers from reviewing', async () => {
 - [ ] **Step 2: Run the focused test to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/capabilities.test.ts
+pnpm --filter @workbench/api test -- src/routes/capabilities.test.ts
 ```
 
 Expected: FAIL because review routes are missing.
@@ -704,8 +703,8 @@ The page must show category, extracted value, confidence, source filename, sourc
 - [ ] **Step 5: Run API and UI tests**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/capabilities.test.ts
-npm --workspace apps/workbench test -- src/pages/CapabilityReviewPage.test.tsx
+pnpm --filter @workbench/api test -- src/routes/capabilities.test.ts
+pnpm --filter @workbench/web test -- src/pages/CapabilityReviewPage.test.tsx
 ```
 
 Expected: review permissions, required reason, history and evidence display tests PASS.
@@ -759,7 +758,7 @@ it('rejects a primary decision without evidence', async () => {
 - [ ] **Step 2: Run tests to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/markets.test.ts
+pnpm --filter @workbench/api test -- src/routes/markets.test.ts
 ```
 
 Expected: FAIL because generation and decision routes are missing.
@@ -789,8 +788,8 @@ The page displays 3–5 candidates side-by-side on desktop and as cards on mobil
 - [ ] **Step 6: Run focused tests**
 
 ```powershell
-npm --workspace apps/api test -- src/ai/marketGenerator.test.ts src/routes/markets.test.ts
-npm --workspace apps/workbench test -- src/pages/MarketSelectionPage.test.tsx
+pnpm --filter @workbench/api test -- src/ai/marketGenerator.test.ts src/routes/markets.test.ts
+pnpm --filter @workbench/web test -- src/pages/MarketSelectionPage.test.tsx
 ```
 
 Expected: only confirmed capabilities reach AI; unsupported market claims remain unverified; evidence and selection invariants PASS.
@@ -838,7 +837,7 @@ it('prevents viewers from reading internal audit history', async () => {
 - [ ] **Step 2: Run tests to verify failure**
 
 ```powershell
-npm --workspace apps/api test -- src/routes/audit.test.ts src/routes/projects.test.ts
+pnpm --filter @workbench/api test -- src/routes/audit.test.ts src/routes/projects.test.ts
 ```
 
 Expected: FAIL because audit route and next-action rules are absent.
@@ -875,19 +874,19 @@ test('team turns a factory catalog into a selected market direction', async ({ p
 })
 ```
 
-The E2E test uses a deterministic fake AI provider selected by `AI_PROVIDER=fake`; it must not call the network. A separate opt-in smoke command `npm run test:openai-smoke` runs one small real extraction only when `OPENAI_API_KEY` is present.
+The E2E test uses a deterministic fake AI provider selected by `AI_PROVIDER=fake`; it must not call the network. A separate opt-in smoke command `pnpm test:openai-smoke` runs one small real extraction only when `OPENAI_API_KEY` is present.
 
 - [ ] **Step 5: Document exact local operation**
 
-`platform/README.md` must include: copy `.env.example` to `.env`; start PostgreSQL/MinIO; install dependencies; migrate and seed; run API, worker and workbench; configure `OPENAI_API_KEY`; run unit, integration, E2E and optional real-provider smoke tests; stop services without deleting named volumes. It must state that the local seeded password is for development only and must be replaced outside local development.
+`platform/README.md` must include: copy `.env.example` to `.env`; install dependencies; migrate and seed the local SQLite database; run API, worker and workbench; configure `OPENAI_API_KEY`; run unit, integration, E2E and optional real-provider smoke tests; back up or remove local development data safely. It must state that the local seeded password is for development only and must be replaced outside local development.
 
 - [ ] **Step 6: Run the complete verification suite**
 
 ```powershell
-npm test
-npm run lint
-npm run build
-npm run test:e2e
+pnpm test
+pnpm lint
+pnpm build
+pnpm test:e2e
 ```
 
 Expected: all unit/integration tests PASS; lint exits 0; API, contracts and workbench builds succeed; the phase-one Playwright scenario PASSes.
