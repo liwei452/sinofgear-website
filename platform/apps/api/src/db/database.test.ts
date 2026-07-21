@@ -34,7 +34,7 @@ describe('database migrations', () => {
     const database = openDatabase(':memory:')
     runMigrations(database)
     expect(() => runMigrations(database)).not.toThrow()
-    expect(database.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get()).toEqual({ count: 2 })
+    expect(database.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get()).toEqual({ count: 3 })
     database.close()
   })
 })

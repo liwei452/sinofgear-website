@@ -7,6 +7,7 @@ import { ProjectListPage } from '../pages/ProjectListPage'
 import { ProjectOverviewPage } from '../pages/ProjectOverviewPage'
 import { ProjectFilesPage } from '../pages/ProjectFilesPage'
 import { CapabilityReviewPage } from '../pages/CapabilityReviewPage'
+import { MarketSelectionPage } from '../pages/MarketSelectionPage'
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
         { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
         { path: '/projects/:projectId/files', element: <ProjectFilesPage /> },
         { path: '/projects/:projectId/capabilities', element: <CapabilityReviewPage /> },
+        { path: '/projects/:projectId/markets', element: <MarketSelectionPage /> },
       ],
     }],
   },

@@ -38,6 +38,7 @@ export function ProjectOverviewPage() {
           <h2>{project.data.nextAction}</h2>
           <Link className="primary-button inline" to={`/projects/${projectId}/files`}>进入资料采集</Link>
           {' '}<Link className="secondary-button" to={`/projects/${projectId}/capabilities`}>审核能力画像</Link>
+          {' '}<Link className="secondary-button" to={`/projects/${projectId}/markets`}>选品与市场</Link>
         </article>
         <article className="panel facts-panel">
           <span className="panel-label">项目档案</span>

@@ -7,6 +7,8 @@ import { registerProjectRoutes, type ProjectRepository } from './routes/projects
 import type { FileStorage } from './storage/fileStorage.js'
 import type { SqliteAiTaskRepository } from './jobs/taskRepository.js'
 import { registerCapabilityRoutes, type SqliteCapabilityRepository } from './routes/capabilities.js'
+import { registerMarketRoutes, type SqliteMarketRepository } from './routes/markets.js'
+import type { MarketGenerator } from './ai/marketGenerator.js'
 
 const unavailableAuthService: AuthService = {
   async login() { return null },
@@ -21,6 +23,9 @@ export interface BuildAppOptions {
   fileStorage?: FileStorage
   taskRepository?: SqliteAiTaskRepository
   capabilityRepository?: SqliteCapabilityRepository
+  marketRepository?: SqliteMarketRepository
+  marketGenerator?: MarketGenerator
+  marketModel?: string
 }
 
 export async function buildApp(options: BuildAppOptions = {}) {
@@ -50,6 +55,9 @@ export async function buildApp(options: BuildAppOptions = {}) {
   }
   if (options.projectRepository && options.capabilityRepository) {
     await registerCapabilityRoutes(app, options.authService ?? unavailableAuthService, options.projectRepository, options.capabilityRepository)
+  }
+  if (options.projectRepository && options.marketRepository && options.marketGenerator) {
+    await registerMarketRoutes(app, options.authService ?? unavailableAuthService, options.projectRepository, options.marketRepository, options.marketGenerator, options.marketModel ?? 'fake-market-v1')
   }
 
   return app

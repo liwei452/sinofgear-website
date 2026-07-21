@@ -218,6 +218,13 @@ const migrations: Migration[] = [
       ALTER TABLE ai_tasks ADD COLUMN attempt_log_json TEXT NOT NULL DEFAULT '[]';
     `,
   },
+  {
+    version: 3,
+    sql: `
+      ALTER TABLE market_candidates ADD COLUMN generated_model TEXT;
+      ALTER TABLE market_candidates ADD COLUMN prompt_version TEXT;
+    `,
+  },
 ]
 
 export function runMigrations(database: AppDatabase) {
