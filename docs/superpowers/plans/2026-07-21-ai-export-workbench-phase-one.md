@@ -6,7 +6,7 @@
 
 **Architecture:** 保留仓库根目录的 SINOFORM 对外网站，在 `platform/` 中建立独立的 pnpm workspace，包含 React 工作台、Fastify API 和共享契约包。第一阶段使用 SQLite 保存结构化数据和审核历史，使用项目隔离的本地目录保存原始文件；数据库和文件读写保持接口边界，正式多用户部署时迁移到 PostgreSQL 与 S3 兼容对象存储。独立 worker 执行 OpenAI Responses API 的结构化提取任务，AI 通过接口隔离，后续可以替换模型供应商。
 
-**Tech Stack:** TypeScript 5.9、React 19、Vite 7、React Router 7、TanStack Query 5、Fastify 5、Prisma、SQLite、OpenAI JavaScript SDK、Zod 4、Vitest、Testing Library、Playwright。
+**Tech Stack:** TypeScript 5.9、React 19、Vite 7、React Router 7、TanStack Query 5、Fastify 5、Node 24 内置 SQLite、OpenAI JavaScript SDK、Zod 4、Vitest、Testing Library、Playwright。
 
 ## Global Constraints
 
@@ -47,8 +47,10 @@ platform/
     src/market.ts                  # 市场候选、证据和选择契约
   apps/api/
     package.json
-    prisma/schema.prisma           # 用户、会话、项目、文件、任务、能力、候选和审计数据
-    prisma/seed.ts                 # 初始管理员
+    src/db/database.ts             # SQLite 连接与事务边界
+    src/db/migrations.ts           # 版本化 SQL 数据结构
+    src/db/migrate.ts              # 迁移命令入口
+    src/db/seed.ts                 # 初始管理员
     src/app.ts                     # Fastify 组装与统一错误格式
     src/server.ts                  # HTTP 进程入口
     src/worker.ts                  # AI 后台任务入口
@@ -203,9 +205,10 @@ git commit -m "feat: scaffold export workbench platform"
 - Create: `platform/packages/contracts/src/capability.ts`
 - Create: `platform/packages/contracts/src/market.ts`
 - Modify: `platform/packages/contracts/src/index.ts`
-- Create: `platform/apps/api/prisma/schema.prisma`
-- Create: `platform/apps/api/prisma/seed.ts`
-- Create: `platform/apps/api/src/db.ts`
+- Create: `platform/apps/api/src/db/database.ts`
+- Create: `platform/apps/api/src/db/migrations.ts`
+- Create: `platform/apps/api/src/db/migrate.ts`
+- Create: `platform/apps/api/src/db/seed.ts`
 - Create: `platform/apps/api/src/auth/session.ts`
 - Create: `platform/apps/api/src/auth/authorization.ts`
 - Create: `platform/apps/api/src/auth/authorization.test.ts`
@@ -310,7 +313,7 @@ export const marketGenerationSchema = z.object({
 
 - [ ] **Step 4: Add the data model and authorization implementation**
 
-`schema.prisma` must define `User`, `Session`, `FactoryProject`, `ProjectMembership`, `FileAsset`, `AiTask`, `Capability`, `CapabilityReview`, `MarketCandidate`, `MarketEvidence`, `MarketDecision`, and `AuditEvent`. Every project-owned table must include `projectId` and an index on it. `Session.tokenHash` is unique; raw session tokens must never be stored.
+The versioned SQL migration must define `User`, `Session`, `FactoryProject`, `ProjectMembership`, `FileAsset`, `AiTask`, `Capability`, `CapabilityReview`, `MarketCandidate`, `MarketEvidence`, `MarketDecision`, and `AuditEvent`. Every project-owned table must include `projectId` and an index on it. `Session.tokenHash` is unique; raw session tokens must never be stored. SQLite foreign keys must be enabled for every connection.
 
 ```ts
 // platform/apps/api/src/auth/authorization.ts
@@ -326,7 +329,7 @@ export function canAccessProject(role: ProjectRole, allowedRoles: ProjectRole[])
 - [ ] **Step 5: Apply migration, seed the administrator, and run tests**
 
 ```powershell
-pnpm --filter @workbench/api prisma:migrate --name initial_workbench
+pnpm --filter @workbench/api db:migrate
 pnpm --filter @workbench/api seed
 pnpm --filter @workbench/api test
 ```
@@ -560,7 +563,7 @@ it('persists structured capability drafts with source evidence', async () => {
     interviewQuestions: ['该能力是否为长期稳定能力？'],
   }
   await processTask(task.id, dependencies)
-  const saved = await prisma.capability.findMany({ where: { sourceFileId: file.id } })
+  const saved = capabilityRepository.findBySourceFile(file.id)
   expect(saved).toHaveLength(1)
   expect(saved[0].reviewStatus).toBe('PENDING_REVIEW')
 })
@@ -570,7 +573,7 @@ it('marks the third transient failure as failed', async () => {
   await processTask(task.id, dependencies)
   await processTask(task.id, dependencies)
   await processTask(task.id, dependencies)
-  expect((await prisma.aiTask.findUniqueOrThrow({ where: { id: task.id } })).status).toBe('FAILED')
+  expect(taskRepository.findRequired(task.id).status).toBe('FAILED')
 })
 ```
 
