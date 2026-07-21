@@ -8,8 +8,13 @@ import type { SqliteAiTaskRepository } from '../jobs/taskRepository.js'
 import type { AuthService, AuthenticatedUser } from './auth.js'
 import type { ProjectRepository } from './projects.js'
 
-export const maximumFileSize = 50 * 1024 * 1024
+export const maximumUploadFileSize = 200 * 1024 * 1024
+export const maximumAiExtractionFileSize = 50 * 1024 * 1024
 const downloadLifetimeSeconds = 300
+
+export function isAiExtractionEligible(size: number) {
+  return size < maximumAiExtractionFileSize
+}
 
 const allowedTypes = new Map<string, Set<string>>([
   ['.pdf', new Set(['application/pdf'])],
@@ -39,6 +44,7 @@ export interface FileAsset {
   uploadedAt: string
   uploaderName: string
   extractionStatus: string
+  aiExtractionEligible: boolean
 }
 
 interface FileAssetRow {
@@ -80,6 +86,7 @@ function toFileAsset(row: FileAssetRow): FileAsset {
     uploadedAt: row.created_at,
     uploaderName: row.uploader_name,
     extractionStatus: extractionStatus(row.task_status),
+    aiExtractionEligible: isAiExtractionEligible(row.size),
   }
 }
 
@@ -224,15 +231,15 @@ export async function registerFileRoutes(
 
     let part
     try {
-      part = await request.file({ limits: { files: 1, fileSize: maximumFileSize } })
+      part = await request.file({ limits: { files: 1, fileSize: maximumUploadFileSize } })
       if (!part) return reply.code(400).send({ code: 'FILE_REQUIRED', message: '请选择文件' })
       if (!supportedFile(part.filename, part.mimetype)) {
         part.file.resume()
         return reply.code(415).send({ code: 'UNSUPPORTED_FILE_TYPE', message: '不支持这种文件格式' })
       }
       const bytes = await part.toBuffer()
-      if (part.file.truncated || bytes.length > maximumFileSize) {
-        return reply.code(413).send({ code: 'FILE_TOO_LARGE', message: '单个文件不能超过 50 MB' })
+      if (part.file.truncated || bytes.length > maximumUploadFileSize) {
+        return reply.code(413).send({ code: 'FILE_TOO_LARGE', message: '单个文件不能超过 200 MB' })
       }
 
       const checksum = createHash('sha256').update(bytes).digest('hex')
@@ -260,7 +267,7 @@ export async function registerFileRoutes(
       return reply.code(201).send(asset)
     } catch (error) {
       if ((error as { code?: string }).code === 'FST_REQ_FILE_TOO_LARGE') {
-        return reply.code(413).send({ code: 'FILE_TOO_LARGE', message: '单个文件不能超过 50 MB' })
+        return reply.code(413).send({ code: 'FILE_TOO_LARGE', message: '单个文件不能超过 200 MB' })
       }
       throw error
     }
@@ -292,6 +299,12 @@ export async function registerFileRoutes(
       }
       const asset = await fileRepository.get(project.id, request.params.fileId)
       if (!asset) return reply.code(404).send({ code: 'FILE_NOT_FOUND', message: '文件不存在' })
+      if (!asset.aiExtractionEligible) {
+        return reply.code(422).send({
+          code: 'AI_FILE_TOO_LARGE',
+          message: '文件已保存，但达到或超过 AI 直接提取的 50 MB 上限，请拆分或压缩后再提取。',
+        })
+      }
       if (!taskRepository) {
         return reply.code(503).send({ code: 'TASK_QUEUE_UNAVAILABLE', message: 'AI 任务队列暂不可用' })
       }

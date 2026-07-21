@@ -4,7 +4,12 @@ import { openDatabase } from '../db/database.js'
 import { runMigrations } from '../db/migrations.js'
 import { SqliteAiTaskRepository } from '../jobs/taskRepository.js'
 import type { FileStorage, StoredObject } from '../storage/fileStorage.js'
-import { maximumFileSize, SqliteFileRepository } from './files.js'
+import {
+  isAiExtractionEligible,
+  maximumAiExtractionFileSize,
+  maximumUploadFileSize,
+  SqliteFileRepository,
+} from './files.js'
 import { SqliteProjectRepository } from './projects.js'
 import type { AuthService } from './auth.js'
 
@@ -97,6 +102,12 @@ async function createTestApp() {
 }
 
 describe('file routes', () => {
+  it('keeps storage and AI extraction size boundaries separate', () => {
+    expect(maximumUploadFileSize).toBe(200 * 1024 * 1024)
+    expect(isAiExtractionEligible(maximumAiExtractionFileSize - 1)).toBe(true)
+    expect(isAiExtractionEligible(maximumAiExtractionFileSize)).toBe(false)
+  })
+
   it('rejects executable files', async () => {
     const { app, database } = await createTestApp()
     const payload = multipart('payload.exe', 'application/octet-stream', Buffer.from('MZ'))
@@ -154,18 +165,27 @@ describe('file routes', () => {
     database.close()
   })
 
-  it('rejects files larger than 50 MB', async () => {
+  it('stores a 50 MB file but refuses to enqueue it for direct AI extraction', async () => {
     const { app, database } = await createTestApp()
-    const payload = multipart('oversize.pdf', 'application/pdf', Buffer.alloc(maximumFileSize + 1, 1))
-    const response = await app.inject({
+    const payload = multipart('large-catalog.pdf', 'application/pdf', Buffer.alloc(maximumAiExtractionFileSize, 1))
+    const upload = await app.inject({
       method: 'POST',
       url: '/projects/project-1/files',
       headers: { cookie: 'workbench_session=valid-token', 'content-type': payload.contentType },
       payload: payload.body,
     })
 
-    expect(response.statusCode).toBe(413)
-    expect(response.json().code).toBe('FILE_TOO_LARGE')
+    expect(upload.statusCode).toBe(201)
+    expect(upload.json().aiExtractionEligible).toBe(false)
+
+    const extraction = await app.inject({
+      method: 'POST',
+      url: `/projects/project-1/files/${upload.json().id}/extractions`,
+      headers: { cookie: 'workbench_session=valid-token' },
+    })
+    expect(extraction.statusCode).toBe(422)
+    expect(extraction.json().code).toBe('AI_FILE_TOO_LARGE')
+    expect(database.prepare('SELECT COUNT(*) AS count FROM ai_tasks').get()).toEqual({ count: 0 })
     await app.close()
     database.close()
   })
