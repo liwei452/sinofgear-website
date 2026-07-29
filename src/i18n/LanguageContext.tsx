@@ -41,7 +41,7 @@ export function LanguageProvider({
 }: LanguageProviderProps) {
   const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY)
   const [lang, setLangState] = useState<Lang>(() => {
-    return resolveInitialLanguage(savedLanguage, navigator.languages)
+    return resolveInitialLanguage(savedLanguage)
   })
   const manualSelectionRef = useRef(Boolean(savedLanguage))
 

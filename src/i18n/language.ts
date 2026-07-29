@@ -16,27 +16,12 @@ export function isSupportedLanguage(value: string | null | undefined): value is 
   return supportedLanguages.includes(value as Lang)
 }
 
-function languageFromLocale(locale: string): Lang | undefined {
-  const base = locale.trim().toLowerCase().split(/[-_]/)[0]
-  return isSupportedLanguage(base) ? base : undefined
-}
-
 export function resolveInitialLanguage(
   saved: string | null,
-  browserLanguages: readonly string[],
   countryCode?: string | null,
 ): Lang {
   if (isSupportedLanguage(saved)) return saved
-
-  const countryLanguage = languageFromCountryCode(countryCode)
-  if (countryLanguage) return countryLanguage
-
-  for (const browserLanguage of browserLanguages) {
-    const match = languageFromLocale(browserLanguage)
-    if (match) return match
-  }
-
-  return 'en'
+  return languageFromCountryCode(countryCode) ?? 'en'
 }
 
 export function languageFromCountryCode(countryCode?: string | null): Lang | undefined {

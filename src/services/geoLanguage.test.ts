@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { detectVisitorCountry, parseCountryCode } from './geoLanguage'
+import {
+  detectVisitorCountry,
+  parseCloudflareTrace,
+  parseCountryCode,
+} from './geoLanguage'
 
 describe('geo language adapter', () => {
   it.each([
@@ -13,6 +17,27 @@ describe('geo language adapter', () => {
   it('rejects malformed country values', () => {
     expect(parseCountryCode({ countryCode: 'China' })).toBeUndefined()
     expect(parseCountryCode(null)).toBeUndefined()
+  })
+
+  it('parses the Cloudflare trace country line', () => {
+    expect(parseCloudflareTrace('ip=203.0.113.8\nloc=CN\ntls=TLSv1.3\n')).toBe('CN')
+    expect(parseCloudflareTrace('ip=203.0.113.8\nloc=XX\n')).toBeUndefined()
+    expect(parseCloudflareTrace('ip=203.0.113.8\n')).toBeUndefined()
+  })
+
+  it('uses the same-origin Cloudflare trace endpoint by default', async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () => 'ip=203.0.113.8\nloc=DE\n',
+    })
+
+    await expect(
+      detectVisitorCountry({ fetcher: fetcher as typeof fetch }),
+    ).resolves.toBe('DE')
+    expect(fetcher).toHaveBeenCalledWith(
+      '/cdn-cgi/trace',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
   })
 
   it('prefers an injected code without making a request', async () => {

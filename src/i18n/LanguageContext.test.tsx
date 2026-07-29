@@ -17,6 +17,18 @@ function Probe() {
 describe('LanguageProvider', () => {
   beforeEach(() => localStorage.clear())
 
+  it('starts and remains in English when IP country is unmapped', async () => {
+    render(
+      <LanguageProvider detectCountry={async () => 'FR'}>
+        <Probe />
+      </LanguageProvider>,
+    )
+
+    expect(screen.getByLabelText('language')).toHaveTextContent('en')
+    await act(async () => undefined)
+    expect(screen.getByLabelText('language')).toHaveTextContent('en')
+  })
+
   it('does not allow a delayed IP result to overwrite a manual choice', async () => {
     let finishDetection!: (country: string) => void
     const detectCountry = () => new Promise<string>((resolve) => {
