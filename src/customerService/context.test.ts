@@ -7,7 +7,7 @@ describe('customer-service public context', () => {
       {
         pathname: '/products/spur-gears',
         search: '?utm_source=google&utm_campaign=gear&email=x@example.com&message=secret',
-        href: 'https://www.sinoforce.net/products/spur-gears?utm_source=google',
+        href: 'https://sinfogear.com/products/spur-gears?utm_source=google',
         referrer: 'https://www.google.com/search',
       },
       'de',

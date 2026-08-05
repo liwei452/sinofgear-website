@@ -1,9 +1,10 @@
-import { FileText, Globe2, LockKeyhole } from 'lucide-react'
+import { FileText, Globe2, LockKeyhole, Mail, MapPin, Phone } from 'lucide-react'
 import { useLocation } from 'react-router'
 import InquiryForm, { type InquirySubmitter } from '@/components/InquiryForm'
 import PageHero from '@/components/PageHero'
 import Seo from '@/components/Seo'
 import { pages } from '@/data/pages'
+import { siteConfig } from '@/data/site'
 import { parseProductPrefill } from '@/lib/inquiry'
 import { useLang } from '@/i18n/LanguageContext'
 import { localizeValue } from '@/i18n/messages'
@@ -58,6 +59,29 @@ export default function ContactPage({ submitter }: { submitter?: InquirySubmitte
                   </li>
                 ))}
               </ul>
+            </div>
+            <div className="rounded-3xl border bg-white p-7 shadow-sm">
+              <h2 className="text-xl font-extrabold">{text('Direct contact')}</h2>
+              <div className="mt-5 space-y-4 text-sm">
+                <a
+                  href={`mailto:${siteConfig.email}`}
+                  className="flex items-center gap-3 font-semibold text-primary hover:text-sky-600"
+                >
+                  <Mail className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {siteConfig.email}
+                </a>
+                <a
+                  href={`tel:${siteConfig.phone.replace(/\s/g, '')}`}
+                  className="flex items-center gap-3 text-muted-foreground hover:text-primary"
+                >
+                  <Phone className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                  {siteConfig.phone}
+                </a>
+                <p className="flex items-start gap-3 leading-6 text-muted-foreground">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                  <span>{siteConfig.address}</span>
+                </p>
+              </div>
             </div>
           </aside>
           <InquiryForm initialProduct={initialProduct} submitter={submitter} />

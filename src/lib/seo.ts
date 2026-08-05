@@ -14,7 +14,43 @@ export function buildOrganizationSchema(baseUrl: string): JsonLdRecord {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: siteConfig.brand,
+    legalName: siteConfig.legalName,
+    foundingDate: siteConfig.founded,
+    email: siteConfig.email,
+    telephone: siteConfig.phone,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: siteConfig.address,
+      addressLocality: 'Changsha',
+      addressRegion: 'Hunan',
+      addressCountry: 'CN',
+    },
     url: buildCanonicalUrl(baseUrl, '/'),
+  }
+}
+
+export function buildPageBreadcrumbSchema(
+  name: string,
+  pathname: string,
+  baseUrl: string,
+): JsonLdRecord & { itemListElement: Array<Record<string, unknown>> } {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: buildCanonicalUrl(baseUrl, '/'),
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name,
+        item: buildCanonicalUrl(baseUrl, pathname),
+      },
+    ],
   }
 }
 

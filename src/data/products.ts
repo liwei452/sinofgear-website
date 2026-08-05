@@ -5,6 +5,11 @@ export const productSlugs = [
   'timing-pulleys',
   'gear-racks',
   'custom-gears',
+  'rubber-timing-belts',
+  'polyurethane-timing-belts',
+  'conveyor-belts',
+  'flat-belts',
+  'round-belts',
 ] as const
 
 export type ProductSlug = (typeof productSlugs)[number]
@@ -44,7 +49,7 @@ export const products: Product[] = [
     shortName: 'Spur Gears',
     valueProposition: 'Straight-tooth gears engineered around your drawing, load case, and assembly requirements.',
     description:
-      'SINOFORM reviews tooth geometry, material, heat treatment, bore features, and inspection needs before confirming a manufacturing route.',
+      'SINOF reviews tooth geometry, material, heat treatment, bore features, and inspection needs before confirming a manufacturing route.',
     image: '/assets/gear-spur.jpg',
     imageAlt: 'Close-up of precision-machined spur gears',
     features: [
@@ -78,13 +83,13 @@ export const products: Product[] = [
           'A drawing or 3D model is preferred. Please also share quantity, material preference, heat treatment, accuracy requirement, and the gear application.',
       },
       {
-        question: 'Can SINOFORM review an existing gear sample?',
+        question: 'Can SINOF review an existing gear sample?',
         answer:
           'A sample can support the engineering review, but a controlled drawing and agreed inspection criteria are still recommended before production.',
       },
     ],
     seo: {
-      title: 'Custom Spur Gears Made to Drawing | SINOFORM',
+      title: 'Custom Spur Gears Made to Drawing | SINOF',
       description:
         'Request custom spur gears engineered to your drawing, material, tooth geometry, inspection, and application requirements.',
     },
@@ -135,7 +140,7 @@ export const products: Product[] = [
       },
     ],
     seo: {
-      title: 'Custom Helical Gears to Drawing | SINOFORM',
+      title: 'Custom Helical Gears to Drawing | SINOF',
       description:
         'Source custom helical gears with drawing-led review of helix, material, finishing, mating conditions, and inspection requirements.',
     },
@@ -146,7 +151,7 @@ export const products: Product[] = [
     shortName: 'Bevel Gears',
     valueProposition: 'Bevel gear and mating-pair inquiries reviewed around shaft angle, ratio, contact pattern, and duty cycle.',
     description:
-      'SINOFORM evaluates the complete geometry and application context before confirming whether a bevel gear project is suitable.',
+      'SINOF evaluates the complete geometry and application context before confirming whether a bevel gear project is suitable.',
     image: '/assets/gear-bevel.jpg',
     imageAlt: 'Metal bevel gear with angled teeth',
     features: [
@@ -186,7 +191,7 @@ export const products: Product[] = [
       },
     ],
     seo: {
-      title: 'Custom Bevel Gear Sets to Drawing | SINOFORM',
+      title: 'Custom Bevel Gear Sets to Drawing | SINOF',
       description:
         'Discuss custom bevel gears and matched gear sets with drawing-led review of ratio, shaft angle, materials, contact, and inspection.',
     },
@@ -197,9 +202,9 @@ export const products: Product[] = [
     shortName: 'Timing Pulleys',
     valueProposition: 'Timing pulleys configured around belt profile, tooth count, shaft interface, load, and positioning needs.',
     description:
-      'From a controlled drawing or belt-system specification, SINOFORM reviews pulley geometry and secondary machining requirements.',
-    image: '/assets/gear-shaft.jpg',
-    imageAlt: 'Machined toothed components representative of custom timing pulleys',
+      'From a controlled drawing or belt-system specification, SINOF reviews pulley geometry and secondary machining requirements.',
+    image: '/assets/timing-pulleys.webp',
+    imageAlt: 'Machined metal timing pulleys in multiple sizes',
     features: [
       'Common metric and imperial belt profiles reviewed',
       'Pilot bore, finished bore, keyway, and clamp concepts',
@@ -237,7 +242,7 @@ export const products: Product[] = [
       },
     ],
     seo: {
-      title: 'Custom Timing Pulleys to Drawing | SINOFORM',
+      title: 'Custom Timing Pulleys to Drawing | SINOF',
       description:
         'Request custom timing pulleys reviewed for belt profile, tooth count, bore, hub, flange, material, runout, and positioning needs.',
     },
@@ -248,7 +253,7 @@ export const products: Product[] = [
     shortName: 'Gear Racks',
     valueProposition: 'Gear racks developed for controlled linear motion, mounting, joining, lubrication, and load requirements.',
     description:
-      'SINOFORM reviews rack and pinion data together where possible, including mounting datums, segment joints, and inspection criteria.',
+      'SINOF reviews rack and pinion data together where possible, including mounting datums, segment joints, and inspection criteria.',
     image: '/assets/gear-rack.jpg',
     imageAlt: 'Precision-machined straight gear rack',
     features: [
@@ -288,7 +293,7 @@ export const products: Product[] = [
       },
     ],
     seo: {
-      title: 'Custom Gear Racks and Rack Segments | SINOFORM',
+      title: 'Custom Gear Racks and Rack Segments | SINOF',
       description:
         'Source custom straight or helical gear racks reviewed for tooth system, length, joints, mounting, material, and inspection.',
     },
@@ -299,7 +304,7 @@ export const products: Product[] = [
     shortName: 'Custom Gears',
     valueProposition: 'A drawing-led route for non-standard gears, pinions, geared shafts, and mating transmission components.',
     description:
-      'Share the complete technical package so SINOFORM can review geometry, manufacturability, inspection, documentation, and order context.',
+      'Share the complete technical package so SINOF can review geometry, manufacturability, inspection, documentation, and order context.',
     image: '/assets/gear-worm.jpg',
     imageAlt: 'Assorted machined gear components representing custom gear projects',
     features: [
@@ -333,15 +338,277 @@ export const products: Product[] = [
           'A dimensioned PDF plus a STEP model is ideal. Other common 2D and 3D formats can be reviewed during the inquiry.',
       },
       {
-        question: 'Can SINOFORM provide design-for-manufacture feedback?',
+        question: 'Can SINOF provide design-for-manufacture feedback?',
         answer:
           'Manufacturability observations can be included during technical review, while final design authority remains with the buyer.',
       },
     ],
     seo: {
-      title: 'Custom Gears and Geared Components | SINOFORM',
+      title: 'Custom Gears and Geared Components | SINOF',
       description:
         'Send your custom gear drawing for review of geometry, material, tolerances, inspection, documentation, and order requirements.',
+    },
+  },
+  {
+    slug: 'rubber-timing-belts',
+    name: 'Rubber Timing Belts',
+    shortName: 'Rubber Timing Belts',
+    valueProposition:
+      'Synchronous rubber belts for compact power transmission, positioning, and matched pulley systems.',
+    description:
+      'SINOF reviews belt profile, width, effective length, operating environment, load, speed, and pulley data before confirming a belt proposal.',
+    image: '/assets/rubber-timing-belts.webp',
+    imageAlt: 'SINOF rubber timing belts on a white background',
+    features: [
+      'MXL, XL, L, H, and XH trapezoidal profiles',
+      'HTD 3M, 5M, 8M, 14M, and 20M profiles',
+      'S2M, S3M, S5M, S8M, and S14M profiles',
+      'T2.5, T5, and T10 profiles, plus double-sided and open-ended forms',
+    ],
+    materials: [
+      'Rubber belt body with tensile-member construction',
+      'Tooth-facing fabric and cord options reviewed for the application',
+    ],
+    precision:
+      'Profile, pitch, width, effective length, and matched-pulley requirements are confirmed for each inquiry.',
+    customization: [
+      'Profile, belt width, and effective length',
+      'Endless, double-sided, or open-ended form',
+      'Surface and tooth-facing requirements',
+      'Matched timing-pulley review',
+    ],
+    industries: ['Packaging machinery', 'Automation equipment', 'Textile machinery', 'General industrial drives'],
+    inspection: [
+      'Profile, width, length, and visible-condition checks against the agreed specification',
+      'Fit review with supplied or specified pulley data when included in the project',
+      'Batch documentation defined during quotation',
+    ],
+    faq: [
+      {
+        question: 'Which information is needed for a rubber timing belt inquiry?',
+        answer:
+          'Please provide the profile, width, effective length or tooth count, quantity, operating conditions, and available pulley data.',
+      },
+      {
+        question: 'Are double-sided and open-ended belts available for review?',
+        answer:
+          'Yes. Double-sided and open-ended forms can be reviewed against the requested profile, length, and application.',
+      },
+    ],
+    seo: {
+      title: 'Rubber Timing Belts for Industrial Drives | SINOF',
+      description:
+        'Request rubber timing belts in trapezoidal, HTD, S, and T profiles with width, length, construction, and pulley matching reviewed for your application.',
+    },
+  },
+  {
+    slug: 'polyurethane-timing-belts',
+    name: 'Polyurethane Timing Belts',
+    shortName: 'Polyurethane Timing Belts',
+    valueProposition:
+      'Polyurethane timing belts configured for synchronous conveying, positioning, and industrial drive requirements.',
+    description:
+      'Profile, tensile member, belt form, surface features, and operating conditions are reviewed together before quotation.',
+    image: '/assets/polyurethane-timing-belts.webp',
+    imageAlt: 'White polyurethane timing belt with visible tensile cords',
+    features: [
+      'T2.5, T5, T10, T20 and AT3, AT5, AT10 profiles',
+      'MXL, XL, L, H, XH and HTD 3M, 5M, 8M, 14M profiles',
+      'S5M, S8M, S14M and TK5, TK10, ATK5, ATK10 profiles',
+      'Optional cleats, guides, holes, coatings, and foam subject to application review',
+    ],
+    materials: [
+      'Polyurethane belt body',
+      'Steel-cord and alternative tensile-member constructions reviewed by application',
+    ],
+    precision:
+      'Profile, pitch, width, length, tracking features, and application acceptance criteria are agreed before supply.',
+    customization: [
+      'Endless or open-ended belt form',
+      'Cleats, guides, holes, coatings, and foam',
+      'Profile, width, length, and tensile-member selection',
+      'Matched pulley and conveying-layout review',
+    ],
+    industries: ['Automation', 'Packaging lines', 'Positioning systems', 'Synchronous conveying'],
+    inspection: [
+      'Profile, width, length, and visible-condition checks',
+      'Cleat, guide, hole, or coating layout checked against the released specification',
+      'Project-specific inspection records agreed during quotation',
+    ],
+    faq: [
+      {
+        question: 'Can cleats or guides be added to polyurethane timing belts?',
+        answer:
+          'Cleats, guides, holes, coatings, and foam can be reviewed when their geometry, spacing, orientation, and operating purpose are provided.',
+      },
+      {
+        question: 'Which profile and tensile member should be selected?',
+        answer:
+          'Selection depends on load, speed, pulley geometry, positioning needs, environment, and belt layout. Please share the complete application data.',
+      },
+    ],
+    seo: {
+      title: 'Polyurethane Timing Belts and Custom Features | SINOF',
+      description:
+        'Source polyurethane timing belts with profile, tensile member, cleats, guides, holes, coatings, foam, and matched pulley requirements reviewed.',
+    },
+  },
+  {
+    slug: 'conveyor-belts',
+    name: 'Industrial Conveyor Belts',
+    shortName: 'Conveyor Belts',
+    valueProposition:
+      'PU and PVC conveyor-belt configurations reviewed around the conveyed product, layout, tracking, and environment.',
+    description:
+      'SINOF evaluates belt construction and fabrication details from the conveyor layout, product contact, speed, load, cleaning, and tracking requirements.',
+    image: '/assets/conveyor-belts.webp',
+    imageAlt: 'Assorted blue, green, white, and dark industrial conveyor belts',
+    features: [
+      'PU and PVC belt constructions subject to application review',
+      'Endless and fabricated belt inquiries',
+      'Optional guides, cleats, sidewalls, and perforation',
+      'Surface and tracking requirements reviewed with the conveyor layout',
+    ],
+    materials: [
+      'PU conveyor-belt constructions',
+      'PVC conveyor-belt constructions',
+      'Fabric reinforcement and surface selection reviewed per application',
+    ],
+    precision:
+      'Finished width, length, joint, tracking features, and fabrication layout are confirmed from the released specification.',
+    customization: [
+      'Belt width, endless length, joint, and edge treatment',
+      'Guides, cleats, sidewalls, and perforation',
+      'Surface texture and color subject to available construction',
+      'Application-specific fabrication drawing',
+    ],
+    industries: ['Packaging', 'Material handling', 'Light manufacturing', 'Process conveying'],
+    inspection: [
+      'Width, length, joint, and visible-condition checks',
+      'Fabricated features checked against the released layout',
+      'Application-specific acceptance requirements agreed before production',
+    ],
+    faq: [
+      {
+        question: 'What information is needed to quote a conveyor belt?',
+        answer:
+          'Please provide belt width and length, conveyed product, load, speed, pulley diameters, tracking method, environment, and any cleat or guide drawing.',
+      },
+      {
+        question: 'Can guides, cleats, sidewalls, or holes be included?',
+        answer:
+          'Yes. These features are reviewed against a dimensioned layout and the operating purpose of the conveyor.',
+      },
+    ],
+    seo: {
+      title: 'PU and PVC Industrial Conveyor Belts | SINOF',
+      description:
+        'Request PU or PVC conveyor belts with guides, cleats, sidewalls, perforation, joints, dimensions, and application requirements reviewed.',
+    },
+  },
+  {
+    slug: 'flat-belts',
+    name: 'Flat Transmission Belts',
+    shortName: 'Flat Belts',
+    valueProposition:
+      'Flat-belt solutions reviewed for power transmission, speed, pulley layout, tension, and operating environment.',
+    description:
+      'Belt construction, dimensions, joint or endless form, surface, and pulley conditions are confirmed for the stated drive.',
+    image: '/assets/flat-belts.webp',
+    imageAlt: 'Black and white flat transmission belts arranged in loops',
+    features: [
+      'Nylon-core flat transmission belt inquiries',
+      'Seamless endless belt forms subject to application review',
+      'Surface and friction requirements evaluated with pulley conditions',
+      'Width, length, thickness, and joint requirements confirmed per project',
+    ],
+    materials: [
+      'Nylon-core belt constructions',
+      'Elastomer and fabric surface layers reviewed by application',
+      'Seamless endless constructions where suitable',
+    ],
+    precision:
+      'Width, endless length, thickness, running surface, and joint or seamless construction are confirmed from project data.',
+    customization: [
+      'Width, endless length, and thickness',
+      'Jointed or seamless endless form',
+      'Running and pulley-side surfaces',
+      'Pulley layout and tensioning review',
+    ],
+    industries: ['Textile machinery', 'Printing equipment', 'Machine tools', 'Industrial power transmission'],
+    inspection: [
+      'Width, length, thickness, and visible-condition checks',
+      'Joint or endless construction verified against the agreed specification',
+      'Project-specific running requirements documented before production',
+    ],
+    faq: [
+      {
+        question: 'Which drive information is needed for a flat-belt inquiry?',
+        answer:
+          'Please share pulley diameters and widths, center distance, speed, power or load, tensioning method, environment, and existing belt dimensions.',
+      },
+      {
+        question: 'Can seamless endless flat belts be reviewed?',
+        answer:
+          'Yes. Seamless endless forms can be evaluated when the required dimensions, pulley layout, load, speed, and surface needs are provided.',
+      },
+    ],
+    seo: {
+      title: 'Flat Transmission Belts for Industrial Drives | SINOF',
+      description:
+        'Discuss nylon-core and seamless endless flat belts with dimensions, surfaces, pulley layout, load, speed, and tensioning requirements reviewed.',
+    },
+  },
+  {
+    slug: 'round-belts',
+    name: 'Round Belts',
+    shortName: 'Round Belts',
+    valueProposition:
+      'Round-section belts reviewed for light transmission, conveying, routing, joint, and environmental requirements.',
+    description:
+      'Diameter, length, belt compound, joint form, surface, pulley layout, and application conditions are confirmed per project.',
+    image: '/assets/round-belts.webp',
+    imageAlt: 'Orange round belt supplied on a neutral cardboard reel',
+    features: [
+      'Round-section transmission and conveying belt inquiries',
+      'Diameter and endless-length requirements reviewed',
+      'Open length and joined-loop applications evaluated',
+      'Surface, routing, and pulley requirements confirmed per project',
+    ],
+    materials: [
+      'Polyurethane and other round-belt compounds subject to application review',
+      'Material selection based on load, environment, and contact requirements',
+    ],
+    precision:
+      'Diameter, finished length, joint geometry, and measurable acceptance criteria are confirmed for the application.',
+    customization: [
+      'Belt diameter and length',
+      'Open or endless joined form',
+      'Surface and color subject to available material',
+      'Joint and routing requirements',
+    ],
+    industries: ['Light conveying', 'Packaging equipment', 'Sorting systems', 'General industrial drives'],
+    inspection: [
+      'Diameter, length, joint, and visible-condition checks',
+      'Material and surface checked against the agreed project specification',
+      'Fit or routing requirements reviewed from supplied layout data',
+    ],
+    faq: [
+      {
+        question: 'What measurements are needed for a round-belt inquiry?',
+        answer:
+          'Please provide belt diameter, open or endless length, quantity, pulley layout, load, speed, environment, and preferred joint form.',
+      },
+      {
+        question: 'Can round belts be supplied as joined loops?',
+        answer:
+          'Joined-loop requirements can be reviewed against diameter, finished length, routing, load, and application conditions.',
+      },
+    ],
+    seo: {
+      title: 'Round Belts for Transmission and Conveying | SINOF',
+      description:
+        'Request round belts with diameter, length, material, surface, joint, pulley layout, and application requirements reviewed for your project.',
     },
   },
 ]

@@ -11,7 +11,7 @@ const config: CustomerServiceConfig = {
 const context: CustomerServiceContext = {
   language: 'en',
   pathname: '/products',
-  url: 'https://www.sinoforce.net/products',
+  url: 'https://sinfogear.com/products',
 }
 
 describe('script customer-service adapter', () => {

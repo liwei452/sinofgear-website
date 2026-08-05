@@ -8,6 +8,21 @@ import { LANGUAGE_STORAGE_KEY } from '@/i18n/language'
 describe('shared product detail template', () => {
   beforeEach(() => localStorage.clear())
 
+  it.each([
+    ['rubber-timing-belts', 'Rubber Timing Belts'],
+    ['polyurethane-timing-belts', 'Polyurethane Timing Belts'],
+    ['conveyor-belts', 'Industrial Conveyor Belts'],
+    ['flat-belts', 'Flat Transmission Belts'],
+    ['round-belts', 'Round Belts'],
+  ])('renders the %s configuration through the shared template', (slug, name) => {
+    render(
+      <MemoryRouter initialEntries={[`/products/${slug}`]}>
+        <App />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('heading', { level: 1, name })).toBeInTheDocument()
+  })
+
   it('renders every required spur gear section and a prefilled RFQ link', () => {
     const product = products[0]
     render(

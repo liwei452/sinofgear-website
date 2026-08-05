@@ -58,7 +58,7 @@ export default function Seo({
     })
     setMeta('meta[property="og:type"]', { property: 'og:type', content: type })
     setMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
-    setMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'SINOFORM' })
+    setMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'SINOF' })
     setMeta('meta[property="og:locale"]', { property: 'og:locale', content: openGraphLocales[lang] })
 
     if (image) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { localizeProduct, products } from './products'
 
 describe('product configuration', () => {
-  it('defines the six requested product routes', () => {
+  it('defines the complete requested product routes', () => {
     expect(products.map((product) => product.slug)).toEqual([
       'spur-gears',
       'helical-gears',
@@ -10,6 +10,11 @@ describe('product configuration', () => {
       'timing-pulleys',
       'gear-racks',
       'custom-gears',
+      'rubber-timing-belts',
+      'polyurethane-timing-belts',
+      'conveyor-belts',
+      'flat-belts',
+      'round-belts',
     ])
   })
 

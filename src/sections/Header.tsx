@@ -54,7 +54,7 @@ export default function Header() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4 lg:h-[72px]">
-          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="SINOFORM home">
+          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="SINOF home">
             <img src="/assets/logo-icon.png" alt="" className="h-9 w-9 object-contain" />
             <span className="leading-none">
               <span className="block text-xl font-extrabold tracking-tight text-primary">{siteConfig.brand}</span>

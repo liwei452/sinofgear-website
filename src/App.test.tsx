@@ -16,6 +16,7 @@ describe('public routes', () => {
   beforeEach(() => localStorage.clear())
 
   it.each([
+    ['/about', 'Transmission Manufacturing for Global Industry'],
     ['/products', 'Explore Custom Gear Categories'],
     ['/capabilities', 'A Drawing-Led Manufacturing Review'],
     ['/quality', 'Define Acceptance Criteria Before Production'],
@@ -33,7 +34,7 @@ describe('public routes', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: '探索定制齿轮产品' })).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: '产品' }).length).toBeGreaterThan(0)
-    expect(document.title).toBe('定制齿轮产品 | SINOFORM')
+    expect(document.title).toBe('定制齿轮产品 | SINOF')
     expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       expect.stringContaining('直齿轮'),

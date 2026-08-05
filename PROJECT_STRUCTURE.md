@@ -1,4 +1,4 @@
-# SINOFORM 项目结构与上线交接
+# SINOF 项目结构与上线交接
 
 ## 一、技术结构
 
@@ -13,16 +13,19 @@ src/
 │  └─ ui/                   # 现有 UI 基础组件
 ├─ data/
 │  ├─ pages.ts              # 页面核心文案、表单文案与选项
-│  ├─ products.ts           # 六类产品的独立配置
+│  ├─ company.ts            # 五语公司介绍与已确认企业资料
+│  ├─ products.ts           # 十一类产品的英文配置
+│  ├─ productTranslations.ts# 产品的中、德、日、西语配置
 │  └─ site.ts               # 品牌、域名、路由和导航配置
 ├─ i18n/
-│  ├─ language.ts           # 浏览器语言识别、手动选择、英文回退
+│  ├─ language.ts           # IP 国家映射、手动选择、英文回退
 │  └─ LanguageContext.tsx   # 多语言状态与本地持久化
 ├─ lib/
 │  ├─ inquiry.ts            # 询盘类型、校验、产品预填解析
 │  └─ seo.ts                # canonical 和结构化数据生成
 ├─ pages/
 │  ├─ HomePage.tsx
+│  ├─ AboutPage.tsx
 │  ├─ ProductsPage.tsx
 │  ├─ ProductDetailPage.tsx # 所有产品共用同一个模板
 │  ├─ CapabilitiesPage.tsx
@@ -30,6 +33,7 @@ src/
 │  ├─ ContactPage.tsx
 │  └─ NotFoundPage.tsx
 ├─ services/
+│  ├─ geoLanguage.ts        # Cloudflare 国家代码解析
 │  └─ inquiryApi.ts         # 本地 mock 提交及真实 API 替换边界
 └─ sections/
    ├─ Header.tsx
@@ -42,6 +46,7 @@ src/
 ## 二、正式路由
 
 - `/`
+- `/about`
 - `/products`
 - `/products/spur-gears`
 - `/products/helical-gears`
@@ -49,6 +54,11 @@ src/
 - `/products/timing-pulleys`
 - `/products/gear-racks`
 - `/products/custom-gears`
+- `/products/rubber-timing-belts`
+- `/products/polyurethane-timing-belts`
+- `/products/conveyor-belts`
+- `/products/flat-belts`
+- `/products/round-belts`
 - `/capabilities`
 - `/quality`
 - `/contact`
@@ -76,21 +86,22 @@ src/
 ## 四、多语言策略
 
 - 支持语言结构：英语、德语、日语、西班牙语、中文。
-- 首次访问按浏览器语言自动匹配。
+- 首次访问通过同源 `/cdn-cgi/trace` 获取 Cloudflare 国家代码。
 - 客户手动切换后，选择保存在 `sinoform-language`。
-- 第一阶段只有英文文案经过确认，其他语言显示英文回退内容。
-- `languageFromCountryCode()` 是部署平台 IP 国家代码的预留接入口；当前版本不调用第三方 IP 查询服务。
+- 优先级为：已保存的手动选择 > IP 国家映射 > 英语。
+- 页面和十一类产品均包含英、中、德、日、西五种语言内容。
+- 未映射国家、网络失败或无效响应均保持英语。
 - 搜索引擎不进行强制语言跳转。
 
 ## 五、SEO
 
 每个路由由 `Seo.tsx` 独立写入 title、meta description、canonical、Open Graph、robots 和 JSON-LD。
 
-canonical 默认基于 `https://www.sinoforce.net`，可用 `VITE_SITE_URL` 覆盖。
+canonical 默认基于 `https://sinfogear.com`，可用 `VITE_SITE_URL` 覆盖。
 
 结构化数据只使用已确认内容：
 
-- Organization：仅品牌与网址
+- Organization：品牌、法定公司名、成立时间、展示邮箱、电话和地址
 - Product：无价格、库存、评分、SKU 或认证
 - BreadcrumbList
 - FAQPage
@@ -110,6 +121,8 @@ canonical 默认基于 `https://www.sinoforce.net`，可用 `VITE_SITE_URL` 覆�
 
 第一阶段的文件控件只显示本地文件名，不传输文件内容。
 
+展示邮箱 `info@sinof.net` 不参与表单提交。后续接入正式询盘 API、CRM 或邮件服务时，在 `src/services/inquiryApi.ts` 的边界完成。
+
 ## 七、上线服务器要求
 
 - 启用 HTTPS。
@@ -122,22 +135,19 @@ canonical 默认基于 `https://www.sinoforce.net`，可用 `VITE_SITE_URL` 覆�
 
 正式上线前仍需业务方确认：
 
-1. 销售邮箱。
-2. 电话或 WhatsApp（如需展示）。
-3. 公司法定名称。
-4. 公司或工厂地址（如需展示）。
-5. 已获得的认证及证书编号、范围、有效期。
-6. 各制造工序是否自有或外协。
-7. 各产品可加工材料、热处理和表面处理。
-8. 各产品尺寸范围、模数范围和可承诺精度等级。
-9. 检测设备、检测方法、抽样方案和可提供报告类型。
-10. 可承诺的报价时效、打样周期和量产周期。
-11. 最小起订量和订单数量政策。
-12. 知识产权、保密协议和图纸保留规则。
-13. 隐私政策、Cookie 政策和数据处理说明。
-14. 真实询盘 API、CRM 或邮件接收目标。
-15. 图纸上传的存储、访问、保留和删除政策。
-16. 德语、日语、西班牙语和中文的人工审核译文。
-17. Timing Pulley 与 Custom Gear 的正式产品图片。
+1. WhatsApp（如需展示）。
+2. ISO 9001 证书编号、认证范围、签发机构和有效期。
+3. 高新技术企业及科技型中小企业证明文件的公开方式。
+4. 各制造工序是否自有或外协。
+5. 各产品可加工材料、热处理和表面处理的可承诺范围。
+6. 各产品尺寸范围、模数范围和除已确认 GB 5 级之外的精度边界。
+7. 检测设备型号、检测方法、抽样方案和可提供报告类型。
+8. 可承诺的报价时效、打样周期和量产周期。
+9. 最小起订量和订单数量政策。
+10. 知识产权、保密协议和图纸保留规则。
+11. 隐私政策、Cookie 政策和数据处理说明。
+12. 真实询盘 API、CRM 或邮件接收目标。
+13. 图纸上传的存储、访问、保留和删除政策。
+14. 德语、日语、西班牙语和中文的人工最终审核。
 
 未确认资料在当前页面中均未作为事实发布。

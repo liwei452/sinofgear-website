@@ -18,6 +18,17 @@ async function completeRequiredFields() {
 }
 
 describe('contact page inquiry flow', () => {
+  it('shows the company email as a direct contact option', () => {
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <ContactPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'info@sinof.net' }))
+      .toHaveAttribute('href', 'mailto:info@sinof.net')
+  })
+
   it('prefills a product from the URL and shows success after valid submission', async () => {
     render(
       <MemoryRouter initialEntries={['/contact?product=helical-gears']}>

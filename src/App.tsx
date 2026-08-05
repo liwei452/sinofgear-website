@@ -8,6 +8,7 @@ import HomePage from '@/pages/HomePage'
 import CapabilitiesPage from '@/pages/CapabilitiesPage'
 import QualityPage from '@/pages/QualityPage'
 import ContactPage from '@/pages/ContactPage'
+import AboutPage from '@/pages/AboutPage'
 import { CustomerServiceProvider } from '@/customerService/CustomerServiceContext'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
         <Routes>
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/:slug" element={<ProductDetailPage />} />
             <Route path="capabilities" element={<CapabilitiesPage />} />

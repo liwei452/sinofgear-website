@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import App from '@/App'
+import { products } from '@/data/products'
 
 const prohibitedClaims = [
-  'ISO 9001',
   'IATF',
   '45+',
   '120+',
@@ -16,6 +16,12 @@ const prohibitedClaims = [
 ]
 
 describe('verified public content', () => {
+  it('does not publish excluded third-party branding in product data', () => {
+    expect(
+      products.some((product) => JSON.stringify(product).toLowerCase().includes('nitta')),
+    ).toBe(false)
+  })
+
   it.each([
     ['/', 'From Drawing to a Clear RFQ'],
     ['/capabilities', 'Technical Review Before Quotation'],

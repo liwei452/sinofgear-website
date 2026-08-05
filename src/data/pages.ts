@@ -10,9 +10,20 @@ export const pages = {
     subtitle:
       'A clear inquiry path for spur gears, helical gears, bevel gears, timing pulleys, gear racks, and non-standard geared components.',
     seo: {
-      title: 'Custom Gears Made to Drawing | SINOFORM',
+      title: 'Custom Gears Made to Drawing | SINOF',
       description:
-        'Discuss custom gears and geared components with SINOFORM through a drawing-led engineering and quotation workflow.',
+        'Discuss custom gears and geared components with SINOF through a drawing-led engineering and quotation workflow.',
+    },
+  },
+  about: {
+    eyebrow: 'About SINOF',
+    title: 'Transmission Manufacturing for Global Industry',
+    subtitle:
+      'Learn about SINOF’s production facilities, gear manufacturing equipment, quality laboratory, product range, and company development.',
+    seo: {
+      title: 'About SINOF | Transmission Manufacturing Company',
+      description:
+        'Learn about SINOF, Changsha Xingfeng Transmission Machinery Co., Ltd., its gear workshop, transmission products, quality laboratory, and manufacturing background.',
     },
   },
   products: {
@@ -20,7 +31,7 @@ export const pages = {
     title: 'Explore Custom Gear Categories',
     subtitle: 'Choose a product family to review design inputs, customization options, and inspection planning.',
     seo: {
-      title: 'Custom Gear Products | SINOFORM',
+      title: 'Custom Gear Products | SINOF',
       description:
         'Explore custom spur gears, helical gears, bevel gears, timing pulleys, gear racks, and non-standard gears.',
     },
@@ -31,9 +42,9 @@ export const pages = {
     subtitle:
       'Each project is evaluated for geometry, material, process route, inspection, documentation, and order context before quotation.',
     seo: {
-      title: 'Custom Gear Manufacturing Capabilities | SINOFORM',
+      title: 'Custom Gear Manufacturing Capabilities | SINOF',
       description:
-        'Learn how SINOFORM reviews custom gear drawings, materials, process requirements, documentation, and production readiness.',
+        'Learn how SINOF reviews custom gear drawings, materials, process requirements, documentation, and production readiness.',
     },
   },
   quality: {
@@ -42,9 +53,9 @@ export const pages = {
     subtitle:
       'Quality planning starts with controlled drawings, measurable requirements, agreed reports, and clear change control.',
     seo: {
-      title: 'Gear Quality Planning and Inspection | SINOFORM',
+      title: 'Gear Quality Planning and Inspection | SINOF',
       description:
-        'Review SINOFORM’s drawing-based approach to gear inspection planning, documentation, traceability, and acceptance criteria.',
+        'Review SINOF’s drawing-based approach to gear inspection planning, documentation, traceability, and acceptance criteria.',
     },
   },
   contact: {
@@ -53,14 +64,14 @@ export const pages = {
     subtitle:
       'Share the product type, quantity, material preference, drawing context, and application requirements for technical review.',
     seo: {
-      title: 'Request a Custom Gear Quote | SINOFORM',
+      title: 'Request a Custom Gear Quote | SINOF',
       description:
         'Submit a custom gear inquiry with product, quantity, material, drawing, and application details for review.',
     },
   },
   notFound: {
     title: 'Page Not Found',
-    description: 'The requested SINOFORM page could not be found.',
+    description: 'The requested SINOF page could not be found.',
   },
 } satisfies Record<string, { title: string; description?: string; eyebrow?: string; subtitle?: string; seo?: PageSeo }>
 

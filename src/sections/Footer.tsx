@@ -23,6 +23,24 @@ export default function Footer() {
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               {text('Drawing-led inquiries for custom gears, timing pulleys, gear racks, and geared components.')}
             </p>
+            <p className="mt-5 text-sm font-semibold leading-6 text-white">
+              {siteConfig.legalName}
+            </p>
+            <div className="mt-3 space-y-2 text-sm text-slate-400">
+              <a
+                href={`mailto:${siteConfig.email}`}
+                className="block transition-colors hover:text-sky-400"
+              >
+                {siteConfig.email}
+              </a>
+              <a
+                href={`tel:${siteConfig.phone.replace(/\s/g, '')}`}
+                className="block transition-colors hover:text-sky-400"
+              >
+                {siteConfig.phone}
+              </a>
+              <p className="text-xs leading-5">{siteConfig.address}</p>
+            </div>
           </div>
 
           <div className="lg:col-span-2">
@@ -39,7 +57,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-white">SINOFORM</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-white">SINOF</h2>
             <ul className="mt-4 space-y-2.5 text-sm">
               {navItems.map((item) => (
                 <li key={item.href}>

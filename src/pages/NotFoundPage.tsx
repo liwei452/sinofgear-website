@@ -12,7 +12,7 @@ export default function NotFoundPage() {
   return (
     <>
       <Seo
-        seo={{ title: `${page.title} | SINOFORM`, description: page.description }}
+        seo={{ title: `${page.title} | SINOF`, description: page.description }}
         pathname="/404"
         noIndex
       />

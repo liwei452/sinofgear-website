@@ -15,7 +15,7 @@ const inquiry: InquiryValues = {
 }
 
 describe('mock inquiry service', () => {
-  it('returns a SINOFORM inquiry reference', async () => {
+  it('returns a SINOF inquiry reference', async () => {
     const result = await submitInquiry(inquiry, { delayMs: 0 })
     expect(result.reference).toMatch(/^SF-[A-Z0-9]+$/)
   })
