@@ -23,23 +23,26 @@ npm run build
 
 ```env
 VITE_SITE_URL=https://sinfogear.com
-VITE_INQUIRY_API_URL=
 VITE_VISITOR_COUNTRY_CODE=
 VITE_GEO_API_URL=
 VITE_CUSTOMER_SERVICE_ENABLED=false
 VITE_CUSTOMER_SERVICE_SDK_URL=
 VITE_CUSTOMER_SERVICE_APP_ID=
 VITE_CUSTOMER_SERVICE_GLOBAL=
+INQUIRY_TO_EMAIL=452900431@qq.com
+INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinfogear.com>
 ```
 
 - `VITE_SITE_URL`：Canonical、Open Graph 和结构化数据使用的正式域名。
-- `VITE_INQUIRY_API_URL`：后续真实询盘接口地址。
 - `VITE_VISITOR_COUNTRY_CODE`：可选，用于测试或由托管平台注入两位国家代码。
 - `VITE_GEO_API_URL`：可选的同源 JSON 国家识别接口；未设置时默认读取 Cloudflare `/cdn-cgi/trace`。
 - `VITE_CUSTOMER_SERVICE_ENABLED`：自研客服 SDK 总开关，默认 `false`。
 - `VITE_CUSTOMER_SERVICE_SDK_URL`：客服 SDK 的 HTTPS 脚本地址。
 - `VITE_CUSTOMER_SERVICE_APP_ID`：可公开的应用 ID，不能填写服务端密钥。
 - `VITE_CUSTOMER_SERVICE_GLOBAL`：SDK 在 `window` 上暴露的全局对象名称。
+- `INQUIRY_TO_EMAIL`：服务端询盘通知收件邮箱，生产值为 `452900431@qq.com`。
+- `INQUIRY_FROM_EMAIL`：Resend 域名验证通过后的发件身份，默认 `Sinoform RFQ <inquiries@sinfogear.com>`。
+- `RESEND_API_KEY`：只在 Cloudflare 中保存为加密 Secret，不写入 `.env`、源码或仓库。
 
 自定义 IP 接口可以返回 `{ "countryCode": "DE" }`、`{ "country": "DE" }` 或 `{ "country_code": "DE" }`。默认 Cloudflare 接口读取 `loc=DE`。网络错误、超时、无效或未映射国家均不会阻塞页面。
 
@@ -57,7 +60,7 @@ VITE_CUSTOMER_SERVICE_GLOBAL=
 
 ## 公司资料与联系邮箱
 
-公司介绍与已确认的厂房、设备、实验室、精度、认证和荣誉资料集中维护在 `src/data/company.ts`。`info@sinof.net` 仅作为展示邮箱出现在公司介绍、联系页和页脚；当前询盘仍提交到本地 mock，不会自动发送邮件。
+公司介绍与已确认的厂房、设备、实验室、精度、认证和荣誉资料集中维护在 `src/data/company.ts`。`info@sinof.net` 作为公开联系邮箱显示；网站询盘通过同源 `/api/inquiries` 安全接口发送到 `452900431@qq.com`。
 
 新增公开产品包括橡胶同步带、聚氨酯同步带、输送带、平面传动带和圆带。公开素材不包含 NITTA 名称、标识、规格或文件；原始资料图片保留在项目外部资料包中。
 
@@ -79,6 +82,20 @@ VITE_CUSTOMER_SERVICE_GLOBAL=
 `public/_redirects` 会进入生产构建，保证 `/products/spur-gears` 等 React Router 地址直接打开时仍返回网站页面。
 
 在 Pages 项目的环境变量中填写正式域名、Geo API 和客服 SDK 配置，不要把密钥提交到仓库。自研客服 SDK 默认关闭；只有完整配置 HTTPS 地址、公共 App ID 和全局对象名称后才会加载。
+
+### 配置真实询盘邮件
+
+1. 在 Resend 添加并验证 `sinfogear.com` 发信域名，按其控制台给出的值添加 SPF 与 DKIM DNS 记录。
+2. 创建仅用于发信的 Resend API Key。
+3. 把以下三项保存到 Cloudflare Pages 项目 `sinoform` 的 Variables and Secrets；API Key 必须选择加密保存。
+
+```powershell
+npx wrangler pages secret put RESEND_API_KEY --project-name sinoform
+npx wrangler pages secret put INQUIRY_TO_EMAIL --project-name sinoform
+npx wrangler pages secret put INQUIRY_FROM_EMAIL --project-name sinoform
+```
+
+询盘使用 `multipart/form-data` 提交，支持一个 PDF、STEP/STP、IGES/IGS、DXF 或 DWG 附件，最大 15 MB。服务器会再次检查必填字段、邮箱、字段长度、文件格式和大小；客户数据不写入 localStorage 或本项目数据库。
 
 ### 绑定 sinfogear.com
 

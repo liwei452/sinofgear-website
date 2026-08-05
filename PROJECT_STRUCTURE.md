@@ -34,14 +34,17 @@ src/
 │  └─ NotFoundPage.tsx
 ├─ services/
 │  ├─ geoLanguage.ts        # Cloudflare 国家代码解析
-│  └─ inquiryApi.ts         # 本地 mock 提交及真实 API 替换边界
+│  └─ inquiryApi.ts         # 同源 multipart 询盘提交适配器
+├─ functions/
+│  ├─ api/inquiries.ts      # Cloudflare Pages 询盘接口
+│  └─ lib/inquiryServer.ts  # 服务端校验、邮件正文及 Resend 适配器
 └─ sections/
    ├─ Header.tsx
    ├─ Footer.tsx
    └─ FloatingCta.tsx
 ```
 
-测试文件与被测试模块放在同一目录，覆盖产品数据、语言逻辑、SEO、路由、内容安全、产品模板、询盘校验和 mock API。
+测试文件与被测试模块放在同一目录，覆盖产品数据、语言逻辑、SEO、路由、内容安全、产品模板、询盘校验、附件与邮件接口。
 
 ## 二、正式路由
 
@@ -106,22 +109,16 @@ canonical 默认基于 `https://sinfogear.com`，可用 `VITE_SITE_URL` 覆盖�
 - BreadcrumbList
 - FAQPage
 
-## 六、询盘 API 接入位置
+## 六、询盘邮件接口
 
-当前表单调用 `src/services/inquiryApi.ts` 中的 `submitInquiry()`。该函数目前返回本地 mock 编号，不上传数据，也不把个人信息写入 localStorage。
+`src/services/inquiryApi.ts` 把表单和可选图纸以 `multipart/form-data` 提交到同源 `/api/inquiries`。`functions/api/inquiries.ts` 在 Cloudflare Pages Functions 运行，调用 `functions/lib/inquiryServer.ts` 完成服务端校验、HTML 转义、附件编码和 Resend 邮件发送。
 
-接入真实 API 时：
-
-1. 设置 `VITE_INQUIRY_API_URL`。
-2. 将 `submitInquiry()` 的 mock 结果替换为 `POST {VITE_INQUIRY_API_URL}/inquiries`。
-3. JSON 请求发送 Name、Company、Email、Country、Product、Quantity、Material 和 Message。
-4. 图纸文件使用经过批准的 multipart 或对象存储直传流程，不要放入普通 JSON。
-5. 服务端必须完成文件类型、大小、病毒扫描、访问权限、保留期限和删除策略。
-6. 前端继续沿用现有成功、失败和重试状态。
-
-第一阶段的文件控件只显示本地文件名，不传输文件内容。
-
-展示邮箱 `info@sinof.net` 不参与表单提交。后续接入正式询盘 API、CRM 或邮件服务时，在 `src/services/inquiryApi.ts` 的边界完成。
+- 通知邮箱由 `INQUIRY_TO_EMAIL` 固定为 `452900431@qq.com`，不能由客户输入覆盖。
+- 发件身份由 `INQUIRY_FROM_EMAIL` 配置；客户邮箱只作为 `reply_to`。
+- `RESEND_API_KEY` 只能保存为 Cloudflare 加密 Secret。
+- 支持一个 PDF、STEP/STP、IGES/IGS、DXF 或 DWG 文件，最大 15 MB。
+- 隐藏 honeypot 字段过滤基础机器人；发生真实滥用后再增加 Turnstile 和限流。
+- 询盘个人资料不写入 localStorage 或数据库。
 
 ## 七、上线服务器要求
 
