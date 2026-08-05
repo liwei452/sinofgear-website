@@ -61,14 +61,14 @@ export function validateDrawing(file: File | null): string | undefined {
 
 export function validateInquiry(values: InquiryValues): InquiryErrors {
   const errors: InquiryErrors = {}
-  const required: Array<keyof InquiryValues> = [
+  const required = [
     'name',
     'company',
     'email',
     'country',
     'product',
     'message',
-  ]
+  ] as const
 
   for (const field of required) {
     if (!values[field].trim()) errors[field] = 'This field is required.'

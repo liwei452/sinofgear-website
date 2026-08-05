@@ -20,20 +20,24 @@ describe('production inquiry service', () => {
     const drawing = new File(['drawing'], 'gear.step', {
       type: 'application/octet-stream',
     })
-    const fetcher = vi.fn(async () =>
-      Response.json({
+    let requestedUrl: RequestInfo | URL | undefined
+    let requestedInit: RequestInit | undefined
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      requestedUrl = input
+      requestedInit = init
+      return Response.json({
         reference: 'SF-TEST123',
         receivedAt: '2026-08-05T00:00:00.000Z',
-      }),
-    )
+      })
+    })
 
     const result = await submitInquiry({ ...inquiry, drawingFile: drawing }, { fetcher })
 
     expect(result.reference).toBe('SF-TEST123')
     expect(fetcher).toHaveBeenCalledTimes(1)
-    expect(fetcher.mock.calls[0][0]).toBe('/api/inquiries')
-    expect(fetcher.mock.calls[0][1]?.method).toBe('POST')
-    const body = fetcher.mock.calls[0][1]?.body as FormData
+    expect(requestedUrl).toBe('/api/inquiries')
+    expect(requestedInit?.method).toBe('POST')
+    const body = requestedInit?.body as FormData
     expect(body.get('email')).toBe('alex@example.com')
     expect(body.get('company')).toBe('Northstar Motion')
     expect(body.get('website')).toBe('')
