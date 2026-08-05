@@ -100,7 +100,7 @@ export const inquiryCopy = {
     product: 'Product',
     quantity: 'Quantity',
     material: 'Material',
-    drawing: 'Drawing upload placeholder',
+    drawing: 'Drawing (optional)',
     message: 'Message',
   },
   placeholders: {
@@ -112,12 +112,12 @@ export const inquiryCopy = {
     message: 'Describe the application, tooth data, tolerances, heat treatment, inspection, and any open questions.',
   },
   drawingNote:
-    'Phase one records the selected file name only. File transfer will be enabled with the production inquiry API.',
+    'Optional drawing: PDF, STEP/STP, IGES/IGS, DXF, or DWG; maximum 15 MB.',
   submit: 'Submit Inquiry',
   submitting: 'Submitting…',
   successTitle: 'Inquiry received',
   successMessage:
-    'Your mock inquiry has been recorded for this local demonstration. No personal data has been sent to a live API.',
+    'Thank you. Your inquiry has been sent to our engineering team. Please keep the reference below for follow-up.',
   retry: 'Retry submission',
   reset: 'Start another inquiry',
 }

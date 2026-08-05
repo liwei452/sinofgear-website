@@ -113,6 +113,17 @@ export default function InquiryForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+      <div className="absolute left-[-10000px]" aria-hidden="true">
+        <Label htmlFor="website">Website</Label>
+        <Input
+          id="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={values.website}
+          onChange={(event) => setField('website', event.target.value)}
+        />
+      </div>
+
       {status === 'error' && (
         <div role="alert" className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
           <div className="flex items-start gap-3">
@@ -231,10 +242,13 @@ export default function InquiryForm({
               type="file"
               accept=".pdf,.step,.stp,.iges,.igs,.dxf,.dwg"
               className="h-auto min-h-10 pl-9 file:mr-3"
-              onChange={(event) => setField('drawingFileName', event.target.files?.[0]?.name ?? '')}
+              onChange={(event) => setField('drawingFile', event.target.files?.[0] ?? null)}
+              aria-invalid={Boolean(errors.drawingFile)}
+              aria-describedby={errors.drawingFile ? 'drawingFile-error' : undefined}
             />
           </div>
-          {values.drawingFileName && <p className="text-xs font-medium text-primary">{values.drawingFileName}</p>}
+          {values.drawingFile && <p className="text-xs font-medium text-primary">{values.drawingFile.name}</p>}
+          {fieldError('drawingFile')}
         </div>
       </div>
 

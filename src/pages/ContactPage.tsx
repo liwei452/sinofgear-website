@@ -47,7 +47,7 @@ export default function ContactPage({ submitter }: { submitter?: InquirySubmitte
                   {
                     icon: LockKeyhole,
                     title: 'Production API pending',
-                    text: 'This first version uses a local mock. Direct contact and secure file transfer appear after business details are confirmed.',
+                    text: 'Your inquiry and optional drawing are sent securely to our engineering team for review.',
                   },
                 ].map((item) => (
                   <li key={item.title} className="flex items-start gap-3">

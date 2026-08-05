@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
-import { submitInquiry } from '@/services/inquiryApi'
+import { describe, expect, it, vi } from 'vitest'
 import { LanguageProvider } from '@/i18n/LanguageContext'
 import { LANGUAGE_STORAGE_KEY } from '@/i18n/language'
 import ContactPage from './ContactPage'
@@ -30,9 +29,13 @@ describe('contact page inquiry flow', () => {
   })
 
   it('prefills a product from the URL and shows success after valid submission', async () => {
+    const submitter = vi.fn(async () => ({
+      reference: 'SF-REAL1',
+      receivedAt: '2026-08-05T00:00:00.000Z',
+    }))
     render(
       <MemoryRouter initialEntries={['/contact?product=helical-gears']}>
-        <ContactPage submitter={(values) => submitInquiry(values, { delayMs: 0 })} />
+        <ContactPage submitter={submitter} />
       </MemoryRouter>,
     )
 
@@ -44,11 +47,13 @@ describe('contact page inquiry flow', () => {
     expect(screen.getByText(/SF-/)).toBeInTheDocument()
   })
 
-  it('shows a retry action when the mock service fails', async () => {
+  it('shows a retry action when the production service fails', async () => {
     render(
       <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
         <ContactPage
-          submitter={(values) => submitInquiry(values, { delayMs: 0, forceFailure: true })}
+          submitter={async () => {
+            throw new Error('We could not submit your inquiry. Please try again.')
+          }}
         />
       </MemoryRouter>,
     )
@@ -60,6 +65,49 @@ describe('contact page inquiry flow', () => {
       'We could not submit your inquiry. Please try again.',
     )
     expect(screen.getByRole('button', { name: /retry submission/i })).toBeInTheDocument()
+  })
+
+  it('passes the selected engineering drawing and empty honeypot to the submitter', async () => {
+    const submitter = vi.fn(async () => ({
+      reference: 'SF-FILE1',
+      receivedAt: '2026-08-05T00:00:00.000Z',
+    }))
+    render(
+      <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
+        <ContactPage submitter={submitter} />
+      </MemoryRouter>,
+    )
+
+    const user = await completeRequiredFields()
+    const drawing = new File(['drawing'], 'gear.step', {
+      type: 'application/octet-stream',
+    })
+    await user.upload(screen.getByLabelText(/drawing/i), drawing)
+    await user.click(screen.getByRole('button', { name: /submit inquiry/i }))
+
+    expect(submitter).toHaveBeenCalledWith(
+      expect.objectContaining({ drawingFile: drawing, website: '' }),
+    )
+  })
+
+  it('blocks an unsupported drawing before calling the submitter', async () => {
+    const submitter = vi.fn()
+    render(
+      <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
+        <ContactPage submitter={submitter} />
+      </MemoryRouter>,
+    )
+
+    const user = await completeRequiredFields()
+    const uploader = userEvent.setup({ applyAccept: false })
+    await uploader.upload(
+      screen.getByLabelText(/drawing/i),
+      new File(['image'], 'gear.png', { type: 'image/png' }),
+    )
+    await user.click(screen.getByRole('button', { name: /submit inquiry/i }))
+
+    expect(screen.getByText('Upload a PDF, STEP, STP, IGES, IGS, DXF, or DWG file.')).toBeInTheDocument()
+    expect(submitter).not.toHaveBeenCalled()
   })
 
   it('localizes the inquiry form from the active language', () => {
