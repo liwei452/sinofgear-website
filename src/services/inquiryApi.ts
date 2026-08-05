@@ -5,40 +5,56 @@ export interface InquiryResult {
   receivedAt: string
 }
 
-interface MockOptions {
-  delayMs?: number
-  forceFailure?: boolean
+type InquiryFetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+
+interface SubmitOptions {
+  fetcher?: InquiryFetcher
 }
 
-function wait(delayMs: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, delayMs))
+const PUBLIC_ERROR = 'We could not submit your inquiry. Please try again.'
+
+function isInquiryResult(value: unknown): value is InquiryResult {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.reference === 'string' &&
+    /^SF-[A-Z0-9-]+$/.test(candidate.reference) &&
+    typeof candidate.receivedAt === 'string' &&
+    !Number.isNaN(Date.parse(candidate.receivedAt))
+  )
 }
 
 export async function submitInquiry(
   values: InquiryValues,
-  options: MockOptions = {},
+  options: SubmitOptions = {},
 ): Promise<InquiryResult> {
-  const { delayMs = 650, forceFailure = false } = options
-  await wait(delayMs)
+  const body = new FormData()
+  body.set('name', values.name)
+  body.set('company', values.company)
+  body.set('email', values.email)
+  body.set('country', values.country)
+  body.set('product', values.product)
+  body.set('quantity', values.quantity)
+  body.set('material', values.material)
+  body.set('message', values.message)
+  body.set('website', values.website)
+  body.set('sourceUrl', window.location.href)
 
-  if (forceFailure) {
-    throw new Error('We could not submit your inquiry. Please try again.')
+  if (values.drawingFile) {
+    body.set('drawing', values.drawingFile, values.drawingFile.name)
   }
 
-  // Production API handoff:
-  // Replace the mock result below with a POST to
-  // `${import.meta.env.VITE_INQUIRY_API_URL}/inquiries`.
-  // Send drawing bytes through an approved multipart upload flow rather than
-  // adding them to this JSON payload. Do not persist personal data in localStorage.
-  void values
+  try {
+    const response = await (options.fetcher ?? fetch)('/api/inquiries', {
+      method: 'POST',
+      body,
+    })
 
-  const reference = `SF-${Date.now().toString(36).toUpperCase()}${Math.random()
-    .toString(36)
-    .slice(2, 5)
-    .toUpperCase()}`
-
-  return {
-    reference,
-    receivedAt: new Date().toISOString(),
+    if (!response.ok) throw new Error(PUBLIC_ERROR)
+    const result: unknown = await response.json()
+    if (!isInquiryResult(result)) throw new Error(PUBLIC_ERROR)
+    return result
+  } catch {
+    throw new Error(PUBLIC_ERROR)
   }
 }
