@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { parseProductPrefill, validateInquiry, type InquiryValues } from './inquiry'
+import {
+  MAX_DRAWING_BYTES,
+  parseProductPrefill,
+  validateDrawing,
+  validateInquiry,
+  type InquiryValues,
+} from './inquiry'
 
 const validInquiry: InquiryValues = {
   name: 'Alex Morgan',
@@ -9,7 +15,8 @@ const validInquiry: InquiryValues = {
   product: 'spur-gears',
   quantity: '500 pcs',
   material: 'Alloy steel',
-  drawingFileName: 'spur-gear.step',
+  drawingFile: null,
+  website: '',
   message: 'Please review this gear for a packaging machine.',
 }
 
@@ -23,7 +30,8 @@ describe('inquiry validation', () => {
       product: '',
       quantity: '',
       material: '',
-      drawingFileName: '',
+      drawingFile: null,
+      website: '',
       message: '',
     })
 
@@ -40,6 +48,25 @@ describe('inquiry validation', () => {
 
   it('accepts a complete inquiry', () => {
     expect(validateInquiry(validInquiry)).toEqual({})
+  })
+
+  it('accepts a supported drawing no larger than 15 MB', () => {
+    const file = new File(['drawing'], 'gear.step', { type: 'application/octet-stream' })
+    expect(validateDrawing(file)).toBeUndefined()
+  })
+
+  it('rejects unsupported drawing extensions', () => {
+    const file = new File(['image'], 'gear.png', { type: 'image/png' })
+    expect(validateDrawing(file)).toBe(
+      'Upload a PDF, STEP, STP, IGES, IGS, DXF, or DWG file.',
+    )
+  })
+
+  it('rejects drawings larger than 15 MB', () => {
+    const file = new File([new Uint8Array(MAX_DRAWING_BYTES + 1)], 'gear.pdf', {
+      type: 'application/pdf',
+    })
+    expect(validateDrawing(file)).toBe('The drawing must be 15 MB or smaller.')
   })
 })
 

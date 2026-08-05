@@ -8,7 +8,8 @@ export interface InquiryValues {
   product: ProductSlug | ''
   quantity: string
   material: string
-  drawingFileName: string
+  drawingFile: File | null
+  website: string
   message: string
 }
 
@@ -23,9 +24,39 @@ export function createEmptyInquiry(product: ProductSlug | '' = ''): InquiryValue
     product,
     quantity: '',
     material: '',
-    drawingFileName: '',
+    drawingFile: null,
+    website: '',
     message: '',
   }
+}
+
+export const MAX_DRAWING_BYTES = 15 * 1024 * 1024
+
+export const ALLOWED_DRAWING_EXTENSIONS = [
+  'pdf',
+  'step',
+  'stp',
+  'iges',
+  'igs',
+  'dxf',
+  'dwg',
+] as const
+
+type DrawingExtension = (typeof ALLOWED_DRAWING_EXTENSIONS)[number]
+
+export function validateDrawing(file: File | null): string | undefined {
+  if (!file) return undefined
+
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  if (!ALLOWED_DRAWING_EXTENSIONS.includes(extension as DrawingExtension)) {
+    return 'Upload a PDF, STEP, STP, IGES, IGS, DXF, or DWG file.'
+  }
+
+  if (file.size > MAX_DRAWING_BYTES) {
+    return 'The drawing must be 15 MB or smaller.'
+  }
+
+  return undefined
 }
 
 export function validateInquiry(values: InquiryValues): InquiryErrors {
@@ -46,6 +77,9 @@ export function validateInquiry(values: InquiryValues): InquiryErrors {
   if (values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(values.email.trim())) {
     errors.email = 'Enter a valid business email.'
   }
+
+  const drawingError = validateDrawing(values.drawingFile)
+  if (drawingError) errors.drawingFile = drawingError
 
   return errors
 }
