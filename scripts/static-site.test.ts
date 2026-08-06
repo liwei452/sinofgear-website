@@ -26,13 +26,13 @@ describe('static blog generation', () => {
     const distDir = await createDist()
     await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
 
-    const blogIndex = await readFile(join(distDir, 'blog', 'index.html'), 'utf8')
+    const blogIndex = await readFile(join(distDir, 'blog.html'), 'utf8')
     expect(blogIndex).toContain('<title>Gear Sourcing Insights | SINOF</title>')
     expect(blogIndex).toContain('<h1>Gear Sourcing Insights</h1>')
     expect(blogIndex.match(/data-static-article-card/g)).toHaveLength(6)
 
     for (const article of articles) {
-      const html = await readFile(join(distDir, 'blog', article.slug, 'index.html'), 'utf8')
+      const html = await readFile(join(distDir, 'blog', `${article.slug}.html`), 'utf8')
       expect(html).toContain(`<title>${article.title} | SINOF</title>`)
       expect(html).toContain(`<h1>${article.title}</h1>`)
       expect(html).toContain(`<link rel="canonical" href="https://sinfogear.com/blog/${article.slug}">`)
@@ -48,7 +48,7 @@ describe('static blog generation', () => {
     await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
 
     const standardsArticle = articles.find((article) => article.slug.includes('iso-1328'))!
-    const html = await readFile(join(distDir, 'blog', standardsArticle.slug, 'index.html'), 'utf8')
+    const html = await readFile(join(distDir, 'blog', `${standardsArticle.slug}.html`), 'utf8')
     expect(html).toContain('Grade 5–6')
     expect(html).not.toContain('<script>alert(')
   })
@@ -87,5 +87,13 @@ describe('static blog generation', () => {
     await expect(readFile(join(distDir, 'robots.txt'), 'utf8')).resolves.toBe(
       'User-agent: *\nAllow: /\n\nSitemap: https://sinfogear.com/sitemap.xml\n',
     )
+  })
+
+  it('redirects trailing-slash blog URLs to their canonical clean URLs', async () => {
+    const redirects = await readFile(join(process.cwd(), 'public', '_redirects'), 'utf8')
+    expect(redirects.split(/\r?\n/).slice(0, 2)).toEqual([
+      '/blog/ /blog 301',
+      '/blog/:slug/ /blog/:slug 301',
+    ])
   })
 })

@@ -132,9 +132,16 @@ export function injectStaticPage(
 }
 
 async function writeRoute(distDir: string, pathname: string, html: string) {
-  const routeDirectory = pathname === '/' ? distDir : join(distDir, ...pathname.split('/').filter(Boolean))
+  if (pathname === '/') {
+    await writeFile(join(distDir, 'index.html'), html, 'utf8')
+    return
+  }
+
+  const segments = pathname.split('/').filter(Boolean)
+  const fileName = `${segments.at(-1)}.html`
+  const routeDirectory = join(distDir, ...segments.slice(0, -1))
   await mkdir(routeDirectory, { recursive: true })
-  await writeFile(join(routeDirectory, 'index.html'), html, 'utf8')
+  await writeFile(join(routeDirectory, fileName), html, 'utf8')
 }
 
 export async function generateStaticSite({
