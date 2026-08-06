@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { articles } from '../src/data/articles'
+import { products } from '../src/data/products'
 import { publicRoutes } from '../src/data/site'
 import { generateStaticSite } from './static-site'
 
@@ -22,6 +23,60 @@ afterEach(async () => {
 })
 
 describe('static blog generation', () => {
+  it('writes crawlable core pages with unique metadata, canonical URLs, and visible headings', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
+
+    const pages = [
+      ['index.html', '/', 'Custom Gears Built Around Your Drawing'],
+      ['about.html', '/about', 'A Drawing-Led Transmission Component Partner'],
+      ['products.html', '/products', 'Custom Gears and Industrial Belts'],
+      ['capabilities.html', '/capabilities', 'Technical Review Before Quotation'],
+      ['quality.html', '/quality', 'Inspection Planning'],
+      ['contact.html', '/contact', 'Request a Drawing Review'],
+    ] as const
+    const titles = new Set<string>()
+
+    for (const [file, pathname, heading] of pages) {
+      const html = await readFile(join(distDir, file), 'utf8')
+      const title = html.match(/<title>(.*?)<\/title>/)?.[1]
+      expect(title).toBeTruthy()
+      titles.add(title!)
+      expect(html).toContain(`<link rel="canonical" href="https://sinfogear.com${pathname === '/' ? '/' : pathname}">`)
+      expect(html).toContain(`<h1>${heading}</h1>`)
+      expect(html).toContain('data-prerendered')
+      expect(html).toContain('"@type":"Organization"')
+    }
+
+    expect(titles.size).toBe(pages.length)
+  })
+
+  it('writes every product page with product, breadcrumb, and FAQ schema', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
+
+    for (const product of products) {
+      const html = await readFile(join(distDir, 'products', `${product.slug}.html`), 'utf8')
+      expect(html).toContain(`<title>${product.seo.title}</title>`)
+      expect(html).toContain(`<h1>${product.name}</h1>`)
+      expect(html).toContain(`href="https://sinfogear.com/products/${product.slug}"`)
+      expect(html).toContain('"@type":"Product"')
+      expect(html).toContain('"@type":"BreadcrumbList"')
+      expect(html).toContain('"@type":"FAQPage"')
+    }
+  })
+
+  it('writes a branded noindex 404 document', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
+
+    const html = await readFile(join(distDir, '404.html'), 'utf8')
+    expect(html).toContain('<title>Page Not Found | SINOF</title>')
+    expect(html).toContain('<meta name="robots" content="noindex,follow">')
+    expect(html).toContain('<h1>Page Not Found</h1>')
+    expect(html).toContain('href="/products"')
+  })
+
   it('writes a crawlable blog index and six article pages', async () => {
     const distDir = await createDist()
     await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
@@ -91,9 +146,11 @@ describe('static blog generation', () => {
 
   it('redirects trailing-slash blog URLs to their canonical clean URLs', async () => {
     const redirects = await readFile(join(process.cwd(), 'public', '_redirects'), 'utf8')
-    expect(redirects.split(/\r?\n/).slice(0, 2)).toEqual([
+    expect(redirects.split(/\r?\n/).slice(0, 3)).toEqual([
       '/blog/ /blog 301',
       '/blog/:slug/ /blog/:slug 301',
+      '/custom-gears.html /products/custom-gears 301',
     ])
+    expect(redirects).not.toContain('/* /index.html 200')
   })
 })

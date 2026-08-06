@@ -1,3 +1,3 @@
 /blog/ /blog 301
 /blog/:slug/ /blog/:slug 301
-/* /index.html 200
+/custom-gears.html /products/custom-gears 301
