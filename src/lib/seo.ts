@@ -1,4 +1,5 @@
 import type { Product, ProductFaq } from '@/data/products'
+import type { Article } from '@/data/articles'
 import { siteConfig } from '@/data/site'
 
 export type JsonLdRecord = Record<string, unknown>
@@ -51,6 +52,62 @@ export function buildPageBreadcrumbSchema(
         item: buildCanonicalUrl(baseUrl, pathname),
       },
     ],
+  }
+}
+
+export function buildBlogBreadcrumbSchema(
+  article: Article | undefined,
+  baseUrl: string,
+): JsonLdRecord & { itemListElement: Array<Record<string, unknown>> } {
+  const itemListElement: Array<Record<string, unknown>> = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: buildCanonicalUrl(baseUrl, '/'),
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Insights',
+      item: buildCanonicalUrl(baseUrl, '/blog'),
+    },
+  ]
+
+  if (article) {
+    itemListElement.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: article.title,
+      item: buildCanonicalUrl(baseUrl, `/blog/${article.slug}`),
+    })
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement,
+  }
+}
+
+export function buildArticleSchema(article: Article, baseUrl: string): JsonLdRecord {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description: article.description,
+    image: buildCanonicalUrl(baseUrl, article.heroImage),
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt,
+    author: {
+      '@type': 'Organization',
+      name: article.author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: siteConfig.brand,
+    },
+    mainEntityOfPage: buildCanonicalUrl(baseUrl, `/blog/${article.slug}`),
   }
 }
 

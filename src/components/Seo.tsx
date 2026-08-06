@@ -8,8 +8,10 @@ import type { Lang } from '@/i18n/language'
 interface SeoProps {
   seo: PageSeo
   pathname: string
-  type?: 'website' | 'product'
+  type?: 'website' | 'product' | 'article'
   image?: string
+  publishedAt?: string
+  updatedAt?: string
   noIndex?: boolean
   structuredData?: JsonLdRecord[]
 }
@@ -32,11 +34,25 @@ function setMeta(selector: string, attributes: Record<string, string>) {
   Object.entries(attributes).forEach(([name, value]) => element?.setAttribute(name, value))
 }
 
+function setOptionalMeta(
+  selector: string,
+  attributes: Record<string, string>,
+  value: string | undefined,
+) {
+  if (!value) {
+    document.head.querySelector(selector)?.remove()
+    return
+  }
+  setMeta(selector, attributes)
+}
+
 export default function Seo({
   seo,
   pathname,
   type = 'website',
   image,
+  publishedAt,
+  updatedAt,
   noIndex = false,
   structuredData = [],
 }: SeoProps) {
@@ -60,6 +76,16 @@ export default function Seo({
     setMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
     setMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'SINOF' })
     setMeta('meta[property="og:locale"]', { property: 'og:locale', content: openGraphLocales[lang] })
+    setOptionalMeta(
+      'meta[property="article:published_time"]',
+      { property: 'article:published_time', content: publishedAt ?? '' },
+      publishedAt,
+    )
+    setOptionalMeta(
+      'meta[property="article:modified_time"]',
+      { property: 'article:modified_time', content: updatedAt ?? '' },
+      updatedAt,
+    )
 
     if (image) {
       setMeta('meta[property="og:image"]', {
@@ -93,7 +119,18 @@ export default function Seo({
     return () => {
       document.getElementById(JSON_LD_ID)?.remove()
     }
-  }, [image, lang, noIndex, pathname, seo.description, seo.title, structuredData, type])
+  }, [
+    image,
+    lang,
+    noIndex,
+    pathname,
+    publishedAt,
+    seo.description,
+    seo.title,
+    structuredData,
+    type,
+    updatedAt,
+  ])
 
   return null
 }

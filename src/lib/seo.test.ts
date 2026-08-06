@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { products } from '@/data/products'
+import { articles } from '@/data/articles'
 import {
+  buildArticleSchema,
   buildBreadcrumbSchema,
+  buildBlogBreadcrumbSchema,
   buildCanonicalUrl,
   buildFaqSchema,
   buildOrganizationSchema,
@@ -75,5 +78,36 @@ describe('SEO builders', () => {
       '@type': 'Question',
       name: products[0].faq[0].question,
     })
+  })
+
+  it('builds BlogPosting data with canonical URLs', () => {
+    const article = articles[0]
+    const schema = buildArticleSchema(article, 'https://sinfogear.com')
+
+    expect(schema).toMatchObject({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: article.title,
+      description: article.description,
+      datePublished: article.publishedAt,
+      dateModified: article.updatedAt,
+      author: { '@type': 'Organization', name: 'SINOF Engineering Team' },
+      publisher: { '@type': 'Organization', name: 'SINOF' },
+      image: `https://sinfogear.com${article.heroImage}`,
+      mainEntityOfPage: `https://sinfogear.com/blog/${article.slug}`,
+    })
+  })
+
+  it('builds blog and article breadcrumbs', () => {
+    const indexSchema = buildBlogBreadcrumbSchema(undefined, 'https://sinfogear.com')
+    const articleSchema = buildBlogBreadcrumbSchema(articles[0], 'https://sinfogear.com')
+
+    expect(indexSchema.itemListElement.map((item) => item.name)).toEqual(['Home', 'Insights'])
+    expect(articleSchema.itemListElement.map((item) => item.name)).toEqual([
+      'Home',
+      'Insights',
+      articles[0].title,
+    ])
+    expect(articleSchema.itemListElement.map((item) => item.position)).toEqual([1, 2, 3])
   })
 })
