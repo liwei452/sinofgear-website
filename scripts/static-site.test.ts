@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { articles } from '../src/data/articles'
+import { publicRoutes } from '../src/data/site'
 import { generateStaticSite } from './static-site'
 
 const temporaryDirectories: string[] = []
@@ -50,5 +51,41 @@ describe('static blog generation', () => {
     const html = await readFile(join(distDir, 'blog', standardsArticle.slug, 'index.html'), 'utf8')
     expect(html).toContain('Grade 5–6')
     expect(html).not.toContain('<script>alert(')
+  })
+
+  it('writes a valid canonical sitemap containing every public route once', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })
+
+    const sitemap = await readFile(join(distDir, 'sitemap.xml'), 'utf8')
+    expect(sitemap).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/)
+    expect(sitemap).toContain(
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    )
+
+    const document = new DOMParser().parseFromString(sitemap, 'application/xml')
+    expect(document.querySelector('parsererror')).toBeNull()
+    const locations = [...document.getElementsByTagName('loc')].map((node) => node.textContent)
+    const expectedLocations = publicRoutes.map((route) =>
+      route === '/' ? 'https://sinfogear.com/' : `https://sinfogear.com${route}`,
+    )
+    expect(locations).toEqual(expectedLocations)
+    expect(new Set(locations).size).toBe(locations.length)
+
+    for (const article of articles) {
+      const entry = [...document.getElementsByTagName('url')].find(
+        (node) => node.getElementsByTagName('loc')[0]?.textContent.endsWith(article.slug),
+      )
+      expect(entry?.getElementsByTagName('lastmod')[0]?.textContent).toBe(article.updatedAt)
+    }
+  })
+
+  it('writes robots.txt with the canonical sitemap location', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com/' })
+
+    await expect(readFile(join(distDir, 'robots.txt'), 'utf8')).resolves.toBe(
+      'User-agent: *\nAllow: /\n\nSitemap: https://sinfogear.com/sitemap.xml\n',
+    )
   })
 })

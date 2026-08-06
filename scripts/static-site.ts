@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { articles, getRelatedArticles, type Article, type ArticleBlock } from '../src/data/articles'
 import { getProductBySlug } from '../src/data/products'
+import { publicRoutes } from '../src/data/site'
 import {
   buildArticleSchema,
   buildBlogBreadcrumbSchema,
@@ -32,6 +33,34 @@ export function escapeHtml(value: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
+}
+
+function escapeXml(value: string): string {
+  return escapeHtml(value)
+}
+
+function buildSitemap(siteUrl: string): string {
+  const normalizedSiteUrl = siteUrl.replace(/\/+$/, '')
+  const articleDates = new Map(
+    articles.map((article) => [`/blog/${article.slug}`, article.updatedAt]),
+  )
+  const uniqueRoutes = [...new Set<string>(publicRoutes)]
+  const entries = uniqueRoutes
+    .map((route) => {
+      const location = route === '/' ? `${normalizedSiteUrl}/` : `${normalizedSiteUrl}${route}`
+      const lastModified = articleDates.get(route)
+      return `<url><loc>${escapeXml(location)}</loc>${
+        lastModified ? `<lastmod>${escapeXml(lastModified)}</lastmod>` : ''
+      }</url>`
+    })
+    .join('')
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries}</urlset>\n`
+}
+
+function buildRobots(siteUrl: string): string {
+  const normalizedSiteUrl = siteUrl.replace(/\/+$/, '')
+  return `User-agent: *\nAllow: /\n\nSitemap: ${normalizedSiteUrl}/sitemap.xml\n`
 }
 
 function renderBlock(block: ArticleBlock): string {
@@ -154,4 +183,7 @@ export async function generateStaticSite({
       injectStaticPage(template, renderArticle(article), articleMeta, siteUrl),
     )
   }
+
+  await writeFile(join(distDir, 'sitemap.xml'), buildSitemap(siteUrl), 'utf8')
+  await writeFile(join(distDir, 'robots.txt'), buildRobots(siteUrl), 'utf8')
 }
