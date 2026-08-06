@@ -2,6 +2,7 @@ export const productSlugs = [
   'spur-gears',
   'helical-gears',
   'bevel-gears',
+  'worm-gears',
   'timing-pulleys',
   'gear-racks',
   'custom-gears',
@@ -194,6 +195,59 @@ export const products: Product[] = [
       title: 'Custom Bevel Gear Sets to Drawing | SINOF',
       description:
         'Discuss custom bevel gears and matched gear sets with drawing-led review of ratio, shaft angle, materials, contact, and inspection.',
+    },
+  },
+  {
+    slug: 'worm-gears',
+    name: 'Custom Worm Gears and Worm Wheel Sets',
+    shortName: 'Worm Gears',
+    valueProposition:
+      'Matched worm and worm-wheel solutions reviewed around ratio, center distance, shaft arrangement, backlash, and duty.',
+    description:
+      'SINOF reviews both mating members, mounting conditions, materials, lubrication, and measurable acceptance criteria before confirming a manufacturing route.',
+    image: '/assets/worm-gears.webp',
+    imageAlt: 'Steel worm shaft meshing with a bronze worm wheel',
+    features: [
+      'Matched worm and worm-wheel data reviewed together',
+      'Ratio, center distance, hand, and shaft arrangement considered',
+      'Backlash, contact, lubrication, and duty requirements evaluated',
+      'Drawing-based manufacturability and inspection review',
+    ],
+    materials: [
+      'Steel worm materials selected after project review',
+      'Bronze and other approved wheel materials subject to application review',
+      'Heat treatment and surface requirements confirmed with the complete design',
+    ],
+    precision:
+      'Target accuracy, backlash, contact pattern, and inspection scope are confirmed after drawing and project review.',
+    customization: [
+      'Ratio, center distance, hand, module, and pressure angle',
+      'Shaft arrangement, bore, hub, keyway, and integrated-shaft features',
+      'Backlash, contact, lubrication, and duty requirements',
+      'Material, heat treatment, finishing, and documentation',
+    ],
+    industries: ['Industrial machinery', 'Positioning systems', 'Lifting equipment', 'Actuators and speed reducers'],
+    inspection: [
+      'Critical dimensions checked against the released drawing',
+      'Profile, lead, pitch, runout, and contact pattern when specified',
+      'Material and hardness documentation when agreed in the quotation',
+    ],
+    faq: [
+      {
+        question: 'What information is needed to quote a worm gear set?',
+        answer:
+          'Please provide drawings for both members, ratio, center distance, hand, shaft arrangement, speed, torque, duty, lubrication, backlash, material, and quantity.',
+      },
+      {
+        question: 'Should the worm and worm wheel be reviewed as a matched set?',
+        answer:
+          'Yes. Their geometry, materials, mounting, backlash, contact, and operating conditions are interdependent and should be reviewed together.',
+      },
+    ],
+    seo: {
+      title: 'Custom Worm Gears and Worm Wheel Sets | SINOF',
+      description:
+        'Request custom worm gears and matched worm wheel sets reviewed for ratio, center distance, materials, backlash, duty, and inspection.',
     },
   },
   {

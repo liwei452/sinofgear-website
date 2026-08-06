@@ -7,6 +7,7 @@ describe('product configuration', () => {
       'spur-gears',
       'helical-gears',
       'bevel-gears',
+      'worm-gears',
       'timing-pulleys',
       'gear-racks',
       'custom-gears',
@@ -16,6 +17,14 @@ describe('product configuration', () => {
       'flat-belts',
       'round-belts',
     ])
+  })
+
+  it('defines the approved worm gear sourcing page', () => {
+    const product = products.find(({ slug }) => slug === 'worm-gears')
+    expect(product?.seo.title).toContain('Worm Gears')
+    expect(product?.seo.description.length).toBeGreaterThanOrEqual(80)
+    expect(product?.seo.description.length).toBeLessThanOrEqual(165)
+    expect(product?.faq).toHaveLength(2)
   })
 
   it('provides every field required by the shared detail template', () => {

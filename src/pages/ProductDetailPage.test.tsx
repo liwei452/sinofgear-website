@@ -9,6 +9,7 @@ describe('shared product detail template', () => {
   beforeEach(() => localStorage.clear())
 
   it.each([
+    ['worm-gears', 'Custom Worm Gears and Worm Wheel Sets'],
     ['rubber-timing-belts', 'Rubber Timing Belts'],
     ['polyurethane-timing-belts', 'Polyurethane Timing Belts'],
     ['conveyor-belts', 'Industrial Conveyor Belts'],

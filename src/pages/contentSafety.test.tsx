@@ -23,6 +23,13 @@ describe('verified public content', () => {
     ).toBe(false)
   })
 
+  it('keeps worm gear claims conditional on engineering review', () => {
+    const product = products.find(({ slug }) => slug === 'worm-gears')
+    expect(product).toBeDefined()
+    expect(JSON.stringify(product)).toMatch(/drawing review|project review|when specified/i)
+    expect(JSON.stringify(product)).not.toMatch(/guaranteed|always|unlimited/i)
+  })
+
   it('keeps unverified certifications and guarantees out of technical articles', () => {
     const prohibitedArticleClaims = [
       /AS9100/i,

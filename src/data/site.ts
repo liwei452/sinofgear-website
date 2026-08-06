@@ -27,6 +27,7 @@ export const publicRoutes = [
   '/products/spur-gears',
   '/products/helical-gears',
   '/products/bevel-gears',
+  '/products/worm-gears',
   '/products/timing-pulleys',
   '/products/gear-racks',
   '/products/custom-gears',

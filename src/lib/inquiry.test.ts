@@ -73,6 +73,7 @@ describe('inquiry validation', () => {
 describe('product prefill', () => {
   it('accepts a configured product slug', () => {
     expect(parseProductPrefill('?product=helical-gears')).toBe('helical-gears')
+    expect(parseProductPrefill('?product=worm-gears')).toBe('worm-gears')
     expect(parseProductPrefill('?product=round-belts')).toBe('round-belts')
   })
 
