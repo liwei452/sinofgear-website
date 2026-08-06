@@ -60,7 +60,7 @@ Replace generic factory and inspection visuals with extracted, approved presenta
 - certification and enterprise-recognition statements;
 - clear links to capabilities, quality planning, products, and RFQ.
 
-The homepage receives a concise proof strip and selected real facility imagery. The Capabilities page uses real production evidence and describes the drawing-review workflow. The Quality page uses real inspection evidence and carefully separates verified facility facts from project-specific accuracy and document commitments.
+The homepage receives a concise proof strip and selected real facility imagery. The Capabilities page uses real production evidence and describes the drawing-review workflow. The Quality page presents the verified inspection-laboratory fact alongside clearly labeled facility imagery and carefully separates verified facts from project-specific accuracy and document commitments.
 
 Public copy must avoid universal capability guarantees. Gear accuracy, inspection scope, lead time, and production acceptance remain subject to drawing and order review.
 

@@ -8,9 +8,13 @@ export const siteConfig = {
   legalNameZh: '长沙市星沣传动机械有限公司',
   founded: '2008',
   defaultUrl: 'https://sinfogear.com',
+  rfqEmail: 'inquiries@sinfogear.com',
   email: 'info@sinof.net',
   phone: '+86 731 8888 4918',
   phones: ['+86 731 8888 4918', '+86 731 8686 7700'],
+  businessContact: 'Chen Shouyu',
+  businessContactZh: '陈首宇',
+  mobile: '+86 159 7312 7000',
   whatsapp: null,
   address:
     'Third Floor, Building 16, Zone B, Huanghua Comprehensive Bonded Zone, Changsha Airport Economic and Free Trade Zone, Changsha, Hunan, China',

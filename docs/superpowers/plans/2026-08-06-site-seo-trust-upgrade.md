@@ -28,7 +28,7 @@
 - Create: `public/assets/factory-exterior.webp`
 - Create: `public/assets/factory-workshop.webp`
 - Create: `public/assets/factory-production-floor.webp`
-- Create: `public/assets/factory-quality-lab.webp`
+- Create: `public/assets/factory-showroom.webp`
 - Modify: `src/data/company.ts`
 - Modify: `src/data/site.ts`
 - Test: `src/data/company.test.ts`
@@ -83,7 +83,7 @@ Expected: FAIL because `companyGallery`, `beltWorkshopArea`, and the new contact
 
 - [ ] **Step 3: Extract and compress the approved images**
 
-Open the presentation read-only through PowerPoint automation, export the four approved slide 3 picture shapes at their native crop, then convert them to WebP at a maximum long edge of 1,920 pixels and quality 82. Use descriptive filenames listed above. Do not export the event template background or event logos.
+Extract the four approved slide 3 factory picture assets from the PPTX media package, correct their embedded orientation, then convert them to WebP at a maximum long edge of 1,920 pixels and quality 82. Use descriptive filenames listed above. Do not export the event template background or event logos. The deck does not contain an unambiguous laboratory photograph, so no factory image may be labeled as the inspection laboratory.
 
 - [ ] **Step 4: Add the typed facts and gallery data**
 
@@ -94,7 +94,7 @@ export const companyGallery = [
   { src: '/assets/factory-exterior.webp', alt: 'SINOF factory exterior in Changsha' },
   { src: '/assets/factory-workshop.webp', alt: 'SINOF transmission manufacturing workshop' },
   { src: '/assets/factory-production-floor.webp', alt: 'SINOF gear production floor and CNC equipment' },
-  { src: '/assets/factory-quality-lab.webp', alt: 'SINOF temperature-controlled gear inspection laboratory' },
+  { src: '/assets/factory-showroom.webp', alt: 'SINOF company showroom and production information display area' },
 ] as const
 ```
 
@@ -290,7 +290,7 @@ Assert that the English pages render:
 - homepage: `Founded in 2008`, `Approximately 7,000 square meters`, and the real exterior image;
 - About: all four gallery images, gear and belt workshop areas, equipment, lab, ISO 9001, and enterprise recognition;
 - Capabilities: real production-floor image plus hobbing, shaping, grinding, CNC machining, and supporting conveyor-system experience;
-- Quality: real laboratory image plus ISO 9001 and controlled-laboratory text;
+- Quality: verified ISO 9001 and controlled-laboratory text alongside clearly labeled facility imagery;
 - Contact: both email roles, Chen Shouyu, mobile, office phone, and address.
 
 Also assert every below-fold gallery image has `loading="lazy"` and meaningful alt text.

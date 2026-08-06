@@ -4,6 +4,7 @@ export const companyFacts = {
   founded: '2008',
   facilityArea: 'Approximately 7,000 square meters',
   gearWorkshopArea: 'Approximately 4,000 square meters',
+  beltWorkshopArea: 'Approximately 2,500 square meters',
   equipment: [
     'High-speed CNC gear hobbing machines',
     'CNC gear shaping machines',
@@ -17,6 +18,25 @@ export const companyFacts = {
   recognition:
     'High-tech enterprise and technology-based SME recognition obtained in 2020',
 } as const
+
+export const companyGallery = [
+  {
+    src: '/assets/factory-exterior.webp',
+    alt: 'SINOF factory exterior at Building 16 in the Changsha bonded zone',
+  },
+  {
+    src: '/assets/factory-showroom.webp',
+    alt: 'SINOF company showroom and production information display area',
+  },
+  {
+    src: '/assets/factory-production-floor.webp',
+    alt: 'SINOF transmission manufacturing floor with organized CNC work areas',
+  },
+  {
+    src: '/assets/factory-workshop.webp',
+    alt: 'SINOF gear and transmission component production workshop in Changsha',
+  },
+] as const
 
 export interface CompanyProfile {
   eyebrow: string
