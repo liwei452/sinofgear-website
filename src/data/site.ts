@@ -1,4 +1,5 @@
 import type { Lang } from '@/i18n/language'
+import { articleRoutes } from './articles'
 
 export const siteConfig = {
   brand: 'SINOF',
@@ -33,6 +34,8 @@ export const publicRoutes = [
   '/capabilities',
   '/quality',
   '/contact',
+  '/blog',
+  ...articleRoutes,
 ] as const
 
 export const navItems = [
@@ -40,6 +43,7 @@ export const navItems = [
   { label: 'Products', href: '/products' },
   { label: 'Capabilities', href: '/capabilities' },
   { label: 'Quality', href: '/quality' },
+  { label: 'Insights', href: '/blog' },
   { label: 'Contact', href: '/contact' },
 ] as const
 

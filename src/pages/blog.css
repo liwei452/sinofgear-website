@@ -1,0 +1,35 @@
+.blog-prose {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.blog-prose h2,
+.blog-prose h3 {
+  scroll-margin-top: 6rem;
+}
+
+.blog-prose table {
+  min-width: 42rem;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.blog-prose th,
+.blog-prose td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.blog-prose th {
+  background: hsl(var(--muted));
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .blog-prose {
+    font-size: 0.975rem;
+  }
+}

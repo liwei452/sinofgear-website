@@ -15,5 +15,6 @@ describe('Footer', () => {
       .toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'info@sinof.net' }))
       .toHaveAttribute('href', 'mailto:info@sinof.net')
+    expect(screen.getByRole('link', { name: 'Insights' })).toHaveAttribute('href', '/blog')
   })
 })

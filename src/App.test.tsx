@@ -21,6 +21,8 @@ describe('public routes', () => {
     ['/capabilities', 'A Drawing-Led Manufacturing Review'],
     ['/quality', 'Define Acceptance Criteria Before Production'],
     ['/contact', 'Tell Us About Your Gear Project'],
+    ['/blog', 'Gear Sourcing Insights'],
+    ['/blog/spur-gear-vs-helical-gear', 'Spur Gear vs Helical Gear: How to Choose'],
     ['/products/spur-gears', 'Custom Spur Gears'],
     ['/missing-page', 'Page Not Found'],
   ])('renders %s as a distinct page', (route, heading) => {

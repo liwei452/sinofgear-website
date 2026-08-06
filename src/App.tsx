@@ -10,6 +10,8 @@ import QualityPage from '@/pages/QualityPage'
 import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
 import { CustomerServiceProvider } from '@/customerService/CustomerServiceContext'
+import BlogIndexPage from '@/pages/BlogIndexPage'
+import BlogArticlePage from '@/pages/BlogArticlePage'
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
             <Route path="capabilities" element={<CapabilitiesPage />} />
             <Route path="quality" element={<QualityPage />} />
             <Route path="contact" element={<ContactPage />} />
+            <Route path="blog" element={<BlogIndexPage />} />
+            <Route path="blog/:slug" element={<BlogArticlePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
