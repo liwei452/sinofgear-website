@@ -15,6 +15,7 @@ import {
 import { submitInquiry, type InquiryResult } from '@/services/inquiryApi'
 import { useLang } from '@/i18n/LanguageContext'
 import { localizeValue } from '@/i18n/messages'
+import { trackInquirySuccess } from '@/analytics/analytics'
 
 export type InquirySubmitter = (values: InquiryValues) => Promise<InquiryResult>
 
@@ -57,6 +58,7 @@ export default function InquiryForm({
     setFailureMessage('')
     try {
       const response = await submitter(values)
+      trackInquirySuccess({ product: values.product as ProductSlug, hasDrawing: Boolean(values.drawingFile) })
       setResult(response)
       setStatus('success')
     } catch (error) {

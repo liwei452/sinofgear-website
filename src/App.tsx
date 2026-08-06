@@ -12,11 +12,13 @@ import AboutPage from '@/pages/AboutPage'
 import { CustomerServiceProvider } from '@/customerService/CustomerServiceContext'
 import BlogIndexPage from '@/pages/BlogIndexPage'
 import BlogArticlePage from '@/pages/BlogArticlePage'
+import RouteAnalytics from '@/analytics/RouteAnalytics'
 
 export default function App() {
   return (
     <LanguageProvider>
       <CustomerServiceProvider>
+        <RouteAnalytics />
         <Routes>
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
