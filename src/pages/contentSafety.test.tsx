@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import App from '@/App'
 import { products } from '@/data/products'
+import { articles } from '@/data/articles'
 
 const prohibitedClaims = [
   'IATF',
@@ -20,6 +21,24 @@ describe('verified public content', () => {
     expect(
       products.some((product) => JSON.stringify(product).toLowerCase().includes('nitta')),
     ).toBe(false)
+  })
+
+  it('keeps unverified certifications and guarantees out of technical articles', () => {
+    const prohibitedArticleClaims = [
+      /AS9100/i,
+      /Nadcap/i,
+      /IATF\s*16949/i,
+      /medical[- ]grade/i,
+      /aerospace approved/i,
+      /guaranteed lead time/i,
+      /guaranteed savings/i,
+    ]
+
+    for (const article of articles) {
+      const content = JSON.stringify(article)
+      for (const claim of prohibitedArticleClaims) expect(content).not.toMatch(claim)
+      expect(content).toMatch(/drawing review|engineering review/i)
+    }
   })
 
   it.each([

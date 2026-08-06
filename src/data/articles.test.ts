@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { articles, articleRoutes, getArticleBySlug, getRelatedArticles } from './articles'
 import { productSlugs } from './products'
+import { publicRoutes } from './site'
 
 const approvedSlugs = [
   'what-information-is-needed-for-custom-gear-rfq',
@@ -69,5 +70,16 @@ describe('technical articles', () => {
     const related = getRelatedArticles(articles[0], 3)
     expect(related).toHaveLength(3)
     expect(related).not.toContain(articles[0])
+  })
+
+  it('keeps every blog and related-product link inside known public routes', () => {
+    const knownRoutes = new Set<string>(publicRoutes)
+    for (const route of articleRoutes) expect(knownRoutes.has(route)).toBe(true)
+    for (const article of articles) {
+      for (const productSlug of article.relatedProductSlugs) {
+        expect(knownRoutes.has(`/products/${productSlug}`)).toBe(true)
+      }
+    }
+    expect(knownRoutes.has('/contact')).toBe(true)
   })
 })
