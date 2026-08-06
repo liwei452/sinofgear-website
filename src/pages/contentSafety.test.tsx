@@ -17,6 +17,33 @@ const prohibitedClaims = [
 ]
 
 describe('verified public content', () => {
+  it.each([
+    ['/about', '/assets/factory-showroom.webp'],
+    ['/capabilities', '/assets/factory-production-floor.webp'],
+    ['/quality', '/assets/factory-workshop.webp'],
+  ])('uses approved factory evidence at %s', (route, imagePath) => {
+    render(
+      <MemoryRouter initialEntries={[route]}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(document.querySelector(`img[src="${imagePath}"]`)).toBeInTheDocument()
+  })
+
+  it('publishes consistent RFQ and business contact details', () => {
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(document.body).toHaveTextContent('inquiries@sinfogear.com')
+    expect(document.body).toHaveTextContent('info@sinof.net')
+    expect(document.body).toHaveTextContent('Chen Shouyu')
+    expect(document.body).toHaveTextContent('+86 159 7312 7000')
+  })
+
   it('does not publish excluded third-party branding in product data', () => {
     expect(
       products.some((product) => JSON.stringify(product).toLowerCase().includes('nitta')),

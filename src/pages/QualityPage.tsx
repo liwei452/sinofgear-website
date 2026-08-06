@@ -45,7 +45,7 @@ export default function QualityPage() {
   const page = localizeValue(pages.quality, lang)
   return (
     <>
-      <Seo seo={page.seo} pathname="/quality" image="/assets/quality.jpg" />
+      <Seo seo={page.seo} pathname="/quality" image="/assets/factory-workshop.webp" />
       <PageHero
         eyebrow={page.eyebrow}
         title={page.title}
@@ -57,8 +57,8 @@ export default function QualityPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <img
-              src="/assets/quality.jpg"
-              alt={text('Gear inspection setup used as a visual reference')}
+              src="/assets/factory-workshop.webp"
+              alt={text('SINOF gear and transmission component production workshop in Changsha')}
               className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
             />
             <div>

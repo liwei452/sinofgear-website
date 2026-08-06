@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import ProductCard from '@/components/ProductCard'
 import Seo from '@/components/Seo'
 import { Button } from '@/components/ui/button'
+import { companyGallery } from '@/data/company'
 import { pages } from '@/data/pages'
 import { products } from '@/data/products'
 import { useLang } from '@/i18n/LanguageContext'
@@ -97,6 +98,23 @@ export default function HomePage() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.slug} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">{text('Verified facility')}</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{text('Inside SINOF Production')}</h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">{text('Real views of our Changsha facility, showroom, and transmission component production areas.')}</p>
+          </div>
+          <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {companyGallery.map((image) => (
+              <figure key={image.src} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+                <img src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" loading="lazy" />
+              </figure>
             ))}
           </div>
         </div>

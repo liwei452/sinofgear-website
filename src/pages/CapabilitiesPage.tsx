@@ -45,7 +45,7 @@ export default function CapabilitiesPage() {
   const page = localizeValue(pages.capabilities, lang)
   return (
     <>
-      <Seo seo={page.seo} pathname="/capabilities" image="/assets/factory.jpg" />
+      <Seo seo={page.seo} pathname="/capabilities" image="/assets/factory-production-floor.webp" />
       <PageHero
         eyebrow={page.eyebrow}
         title={page.title}
@@ -67,8 +67,8 @@ export default function CapabilitiesPage() {
               </p>
             </div>
             <img
-              src="/assets/factory.jpg"
-              alt={text('Industrial machining environment used as a visual reference')}
+              src="/assets/factory-production-floor.webp"
+              alt={text('SINOF transmission manufacturing floor with organized CNC work areas')}
               className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
             />
           </div>

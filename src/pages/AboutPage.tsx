@@ -13,7 +13,7 @@ import { Link } from 'react-router'
 import PageHero from '@/components/PageHero'
 import Seo from '@/components/Seo'
 import { Button } from '@/components/ui/button'
-import { companyProfile } from '@/data/company'
+import { companyGallery, companyProfile } from '@/data/company'
 import { pages } from '@/data/pages'
 import { getSiteUrl, siteConfig } from '@/data/site'
 import { useLang } from '@/i18n/LanguageContext'
@@ -33,7 +33,7 @@ export default function AboutPage() {
       <Seo
         seo={page.seo}
         pathname="/about"
-        image="/assets/factory.jpg"
+        image="/assets/factory-exterior.webp"
         structuredData={[breadcrumb]}
       />
       <PageHero
@@ -61,8 +61,8 @@ export default function AboutPage() {
               ))}
             </div>
             <img
-              src="/assets/factory.jpg"
-              alt=""
+              src="/assets/factory-showroom.webp"
+              alt={companyGallery[1].alt}
               className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
             />
           </div>
@@ -85,6 +85,19 @@ export default function AboutPage() {
       </section>
 
       <section className="bg-secondary/50 py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold tracking-tight">{profile.equipmentTitle}</h2>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {companyGallery.map((image) => (
+              <figure key={image.src} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+                <img src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" loading="lazy" />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           <article className="rounded-3xl border bg-white p-7 shadow-sm sm:p-9">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-primary">
