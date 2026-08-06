@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr scripts/static-site-cli.ts --outDir dist-ssr --emptyOutDir && node dist-ssr/static-site-cli.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:static": "vitest run scripts/static-site.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

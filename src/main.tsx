@@ -3,8 +3,12 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import './index.css'
 import App from './App.tsx'
+import { prepareRootElement } from './lib/prerender.ts'
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')!
+prepareRootElement(rootElement)
+
+createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
       <App />
