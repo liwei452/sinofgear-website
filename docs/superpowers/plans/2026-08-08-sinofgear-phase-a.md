@@ -19,6 +19,9 @@
 - 发布、短链创建和外部副作用必须支持 `Idempotency-Key`。
 - 原始素材不可被派生版本覆盖，连接凭据和密钥不得进入 API、日志或 AIRun 快照。
 - Phase A 必须使用 Fake AI、Mock Platform 和本地测试存储完成确定性自动测试，不依赖外部网络。
+- PostgreSQL 仍是唯一事实源；Phase A 不引入 Neo4j、RDF、OWL 或独立向量数据库。
+- 只有 `APPROVED` 的知识概念和关系可进入新的 AI OntologySnapshot；AI 建议只能以 `SUGGESTED` 保存。
+- 首期本体范围仅限 Gear Manufacturing Ontology，关系展开最大深度固定为 2。
 - 每个任务完成前运行该任务列出的测试；提交只能包含该任务范围内文件。
 
 ---
@@ -43,6 +46,7 @@ sinofgear-growth-engine/
 │  │  ├─ common/
 │  │  ├─ identity/
 │  │  ├─ platforms/
+│  │  ├─ knowledge/
 │  │  ├─ catalog/
 │  │  ├─ assets/
 │  │  ├─ campaigns/
@@ -421,7 +425,185 @@ git commit -m "feat: model platform capabilities and social accounts"
 
 ---
 
-### Task 5: Implement Product Knowledge Base APIs
+### Task 5: Add the Gear Manufacturing Ontology Module
+
+**Files:**
+- Create: `backend/apps/knowledge/apps.py`
+- Create: `backend/apps/knowledge/models.py`
+- Create: `backend/apps/knowledge/relation_rules.py`
+- Create: `backend/apps/knowledge/normalization.py`
+- Create: `backend/apps/knowledge/services.py`
+- Create: `backend/apps/knowledge/serializers.py`
+- Create: `backend/apps/knowledge/views.py`
+- Create: `backend/apps/knowledge/urls.py`
+- Create: `backend/apps/knowledge/migrations/0001_initial.py`
+- Create: `backend/apps/knowledge/management/commands/seed_gear_ontology.py`
+- Create: `backend/apps/audit/apps.py`
+- Create: `backend/apps/audit/models.py`
+- Create: `backend/apps/audit/services.py`
+- Create: `backend/apps/audit/migrations/0001_initial.py`
+- Test: `backend/apps/knowledge/tests/test_concept_isolation.py`
+- Test: `backend/apps/knowledge/tests/test_alias_resolution.py`
+- Test: `backend/apps/knowledge/tests/test_relation_validation.py`
+- Test: `backend/apps/knowledge/tests/test_ontology_snapshot.py`
+- Test: `backend/apps/knowledge/tests/test_knowledge_api.py`
+- Test: `backend/apps/knowledge/tests/test_seed_gear_ontology.py`
+- Test: `backend/apps/audit/tests/test_approval_audit.py`
+
+**Interfaces:**
+- Consumes: `Organization`, `Membership`, and centralized `PermissionCode`.
+- Produces: `KnowledgeConcept`, `KnowledgeAlias`, `KnowledgeRelation`, `KnowledgeEvidence`.
+- Produces: shared `ApprovalRecord` and `AuditLog` primitives for all later review workflows.
+- Produces: `OntologyContextService.resolve_alias`, `expand_concepts`, and `build_snapshot`.
+- Produces: `OntologySnapshot` containing immutable concept, relation, evidence and version references.
+- Produces: `/api/v1/knowledge/concepts`, `/relations`, `/aliases`, `/resolve`, and approve/reject actions.
+
+- [ ] **Step 1: Write failing concept-scope and uniqueness tests**
+
+Create tests proving:
+
+```python
+def test_organization_reads_system_and_own_concepts_but_not_other_org(
+    ontology_service, system_concept, own_concept, other_concept, organization
+):
+    visible = ontology_service.visible_concepts(organization=organization)
+    assert system_concept in visible
+    assert own_concept in visible
+    assert other_concept not in visible
+
+
+def test_referenced_approved_concept_is_deprecated_not_deleted(
+    ontology_service, referenced_concept, administrator
+):
+    result = ontology_service.deprecate(referenced_concept.id, actor=administrator)
+    assert result.status == "DEPRECATED"
+```
+
+Also test partial uniqueness for system codes and organization codes; PostgreSQL `NULL` semantics must not allow duplicate system concepts.
+
+- [ ] **Step 2: Write failing alias and relation-rule tests**
+
+Test normalized alias matching by language, ambiguous aliases requiring human disambiguation, duplicate relation rejection, predicate subject/object type rules, and `IS_A` cycle rejection with the cycle path in the error.
+
+```python
+def test_is_a_cycle_is_rejected(relation_service, gear, helical_gear):
+    relation_service.create(helical_gear, "IS_A", gear)
+    with pytest.raises(RelationCycleError) as error:
+        relation_service.create(gear, "IS_A", helical_gear)
+    assert [gear.code, helical_gear.code, gear.code] == error.value.path
+```
+
+- [ ] **Step 3: Run focused tests and verify RED**
+
+```powershell
+python -m pytest apps/knowledge/tests/test_concept_isolation.py apps/knowledge/tests/test_alias_resolution.py apps/knowledge/tests/test_relation_validation.py -v
+```
+
+Expected: collection or import failure because the knowledge module does not exist.
+
+- [ ] **Step 4: Implement models and database constraints**
+
+Implement:
+
+- Concept types `PRODUCT_TYPE`, `PARAMETER`, `MATERIAL`, `PROCESS`, `STANDARD`, `APPLICATION`, `INDUSTRY`, `CUSTOMER_TYPE`, `PURCHASE_INTENT`.
+- Statuses `SUGGESTED`, `APPROVED`, `REJECTED`, `DEPRECATED`.
+- Predicates `IS_A`, `APPLIES_TO`, `USES_MATERIAL`, `REQUIRES_PROCESS`, `COMPLIES_WITH`, `RELEVANT_TO_CUSTOMER_TYPE`, `INDICATES_PURCHASE_INTENT`, `REQUIRES_PARAMETER`.
+- Conditional unique constraints for SYSTEM and ORGANIZATION concept scopes.
+- Organization-aware unique constraints for relations and aliases.
+- Evidence references that retain immutable source excerpts.
+
+Knowledge models may depend on identity, common and audit, but must not import catalog, campaigns, content, AI or radar. Store `suggested_by_ai_run_id` as a nullable UUID audit reference rather than a foreign key so Task 5 does not depend on the future AI module.
+
+- [ ] **Step 5: Implement relation rules and Ontology Context Service**
+
+Define:
+
+```python
+@dataclass(frozen=True)
+class ConceptVersion:
+    concept_id: UUID
+    code: str
+    concept_type: str
+    version: int
+
+
+@dataclass(frozen=True)
+class RelationVersion:
+    relation_id: UUID
+    subject_concept_id: UUID
+    predicate: str
+    object_concept_id: UUID
+    version: int
+
+
+@dataclass(frozen=True)
+class EvidenceReference:
+    evidence_id: UUID
+    evidence_type: str
+    source_url: str | None
+
+
+@dataclass(frozen=True)
+class OntologySnapshot:
+    organization_id: UUID
+    concept_versions: tuple[ConceptVersion, ...]
+    relation_versions: tuple[RelationVersion, ...]
+    evidence_references: tuple[EvidenceReference, ...]
+    generated_at: datetime
+
+
+def build_snapshot(
+    *, organization: Organization, concept_ids: Sequence[UUID], max_depth: int = 2
+) -> OntologySnapshot:
+    if max_depth < 0 or max_depth > 2:
+        raise OntologyDepthError("Ontology expansion depth must be between 0 and 2")
+    return OntologyContextService(organization).build_snapshot(
+        concept_ids=concept_ids,
+        max_depth=max_depth,
+        statuses={KnowledgeStatus.APPROVED},
+    )
+```
+
+Use a bounded PostgreSQL recursive CTE or equivalent bounded service traversal. SQLite tests may use the service fallback, but production behavior and ordering must be deterministic and covered by integration tests when PostgreSQL becomes available.
+
+- [ ] **Step 6: Implement review-aware APIs and permissions**
+
+- ADMINISTRATOR: create, approve, reject and deprecate system or organization knowledge.
+- REVIEWER: approve/reject organization knowledge only.
+- OPERATOR: create SUGGESTED organization concepts, aliases and relations.
+- READ_ONLY: read APPROVED knowledge only.
+
+AI-originated writes require `suggested_by_ai_run_id` and always start as `SUGGESTED`. API responses never expose other organizations' concepts or evidence.
+
+Every submit, approve, reject and deprecate operation writes both `ApprovalRecord` and `AuditLog` in the same database transaction as the knowledge-state change.
+
+- [ ] **Step 7: Seed the bounded Gear Manufacturing Ontology**
+
+The idempotent seed command must create the exact initial codes and aliases for the approved ontology design: gear types, parameters, materials, processes, standards, industries, applications, customer types and purchase intents. Seed records are SYSTEM scoped, APPROVED and version 1.
+
+Test two consecutive seed runs produce identical counts and relationships.
+
+- [ ] **Step 8: Run migrations and the complete knowledge suite**
+
+```powershell
+python manage.py migrate --settings=config.test_settings
+python -m pytest apps/knowledge/tests apps/audit/tests -v
+python -m pytest -v
+python -m ruff check .
+```
+
+Expected: all tests PASS and output is free of warnings.
+
+- [ ] **Step 9: Commit**
+
+```powershell
+git add backend/apps/knowledge backend/apps/audit backend/config
+git commit -m "feat: add gear manufacturing ontology layer"
+```
+
+---
+
+### Task 6: Implement Product Knowledge Base APIs
 
 **Files:**
 - Create: `backend/apps/catalog/models.py`
@@ -432,15 +614,18 @@ git commit -m "feat: model platform capabilities and social accounts"
 - Create: `backend/apps/catalog/migrations/0001_initial.py`
 - Test: `backend/apps/catalog/tests/test_product_model.py`
 - Test: `backend/apps/catalog/tests/test_products_api.py`
+- Test: `backend/apps/catalog/tests/test_product_concepts.py`
 
 **Interfaces:**
+- Consumes: approved `KnowledgeConcept` and `OntologyContextService` from Task 5.
 - Produces: versioned `Product` model containing the approved structured gear fields.
+- Produces: `ProductConceptLink` with roles `TYPE`, `MATERIAL`, `PROCESS`, `STANDARD`, `APPLICATION`, `PARAMETER`.
 - Produces: `GET/POST /api/v1/products`, `GET/PATCH /api/v1/products/{id}`.
-- Produces: `ProductSnapshot` dictionary used by content generation.
+- Produces: `ProductSnapshot` plus immutable `OntologySnapshot` used by content generation.
 
 - [ ] **Step 1: Write failing model and API tests**
 
-Test product validation for module ranges, tooth-count ranges, required English name, organization isolation and optimistic version updates.
+Test product validation for module ranges, tooth-count ranges, required English name, organization isolation, optimistic version updates, concept-role/type compatibility and rejection of cross-organization concept links.
 
 ```python
 def test_product_snapshot_contains_only_approved_fields(product):
@@ -448,6 +633,13 @@ def test_product_snapshot_contains_only_approved_fields(product):
     assert snapshot["name_en"] == product.name_en
     assert "organization_id" not in snapshot
     assert "internal_notes" not in snapshot
+
+
+def test_product_generation_context_uses_only_approved_concepts(product, concepts):
+    context = build_product_generation_context(product)
+    concept_ids = {item.concept_id for item in context.ontology.concept_versions}
+    assert concepts.approved.id in concept_ids
+    assert concepts.suggested.id not in concept_ids
 ```
 
 - [ ] **Step 2: Run tests and verify failure**
@@ -458,7 +650,7 @@ python -m pytest apps/catalog/tests -v
 
 - [ ] **Step 3: Implement the Product model and snapshot service**
 
-Use explicit columns for frequently filtered fields and JSON only for flexible capability lists. Increment `version` on approved edits and reject stale `If-Match` versions with `409 PRODUCT_VERSION_CONFLICT`.
+Use explicit columns for frequently filtered fields and JSON only for flexible capability lists. Store semantic classifications in ProductConceptLink rather than duplicating them in arbitrary JSON. Increment `version` on approved edits and reject stale `If-Match` versions with `409 PRODUCT_VERSION_CONFLICT`.
 
 - [ ] **Step 4: Implement CRUD endpoints and filters**
 
@@ -475,7 +667,7 @@ git commit -m "feat: add structured product knowledge base"
 
 ---
 
-### Task 6: Implement Original Asset Storage and Product Links
+### Task 7: Implement Original Asset Storage and Product Links
 
 **Files:**
 - Create: `backend/apps/assets/models.py`
@@ -534,7 +726,7 @@ git commit -m "feat: add immutable product asset storage"
 
 ---
 
-### Task 7: Add Campaign and ContentBrief Models
+### Task 8: Add Campaign and ContentBrief Models
 
 **Files:**
 - Create: `backend/apps/campaigns/models.py`
@@ -545,15 +737,17 @@ git commit -m "feat: add immutable product asset storage"
 - Create: `backend/apps/campaigns/migrations/0001_initial.py`
 - Test: `backend/apps/campaigns/tests/test_campaign_api.py`
 - Test: `backend/apps/campaigns/tests/test_content_brief_validation.py`
+- Test: `backend/apps/campaigns/tests/test_content_brief_concepts.py`
 
 **Interfaces:**
-- Produces: `Campaign`, `CampaignProduct`, `ContentBrief`, `ContentBriefProduct`, `ContentBriefAsset`.
+- Consumes: approved KnowledgeConcept records and OntologyContextService from Task 5.
+- Produces: `Campaign`, `CampaignProduct`, `ContentBrief`, `ContentBriefProduct`, `ContentBriefAsset`, `ContentBriefConceptLink`.
 - Produces: `build_content_generation_input(brief_id: UUID) -> ContentGenerationInput`.
 - Produces: `/api/v1/campaigns` and `/api/v1/content-briefs` CRUD endpoints.
 
 - [ ] **Step 1: Write failing brief validation tests**
 
-Require target country, customer type, content objective, CTA, landing page, language, at least one product and at least one target platform. Reject prohibited claims that duplicate an approved selling point.
+Require target country, customer type, content objective, CTA, landing page, language, at least one product and at least one target platform. Reject prohibited claims that duplicate an approved selling point. Validate concept roles `TARGET_INDUSTRY`, `TARGET_CUSTOMER_TYPE`, `PURCHASE_INTENT`, `STANDARD`, and `APPLICATION` against concept types and organization visibility.
 
 ```python
 def test_generation_input_is_a_versioned_snapshot(content_brief):
@@ -561,6 +755,7 @@ def test_generation_input_is_a_versioned_snapshot(content_brief):
     assert result.brief_version == content_brief.version
     assert result.products
     assert result.target_platforms
+    assert result.ontology_snapshot.concept_versions
 ```
 
 - [ ] **Step 2: Run tests and verify failure**
@@ -571,7 +766,7 @@ python -m pytest apps/campaigns/tests -v
 
 - [ ] **Step 3: Implement models, relationships, and versioned snapshot**
 
-The snapshot must contain product facts, selected assets, target market, keywords, CTA, landing page, prohibited claims, selling points and advantages. It must not query live mutable data after the AI Job starts.
+The snapshot must contain product facts, selected assets, target market, keywords, CTA, landing page, prohibited claims, selling points, advantages and the approved OntologySnapshot from ProductConceptLink plus ContentBriefConceptLink. It must not query live mutable data after the AI Job starts.
 
 - [ ] **Step 4: Implement APIs and permissions**
 
@@ -588,7 +783,7 @@ git commit -m "feat: add campaigns and content briefs"
 
 ---
 
-### Task 8: Implement Unified Jobs, Prompt Versions, and Fake AI
+### Task 9: Implement Unified Jobs, Prompt Versions, and Fake AI
 
 **Files:**
 - Create: `backend/apps/jobs/models.py`
@@ -605,6 +800,7 @@ git commit -m "feat: add campaigns and content briefs"
 - Test: `backend/apps/ai/tests/test_prompt_audit.py`
 
 **Interfaces:**
+- Consumes: frozen `ContentGenerationInput.ontology_snapshot` created from approved Task 5 knowledge.
 - Produces: `Job`, `PromptVersion`, `AIRun`.
 - Produces: `JobService.create`, `claim`, `progress`, `succeed`, `fail`, `retry`, `cancel`.
 - Produces: `AIProvider.generate(*, prompt, schema) -> dict`.
@@ -623,7 +819,7 @@ Also test invalid transitions, progress bounds, organization isolation and cance
 
 - [ ] **Step 2: Write failing AI audit tests**
 
-Assert every successful AIRun records provider, model, PromptVersion, immutable input snapshot, validated output JSON, confidence and timestamps; assert secrets are removed from snapshots.
+Assert every successful AIRun records provider, model, PromptVersion, immutable input snapshot including OntologySnapshot, validated output JSON, confidence and timestamps; assert secrets are removed from snapshots. Assert later concept deprecation does not mutate an existing AIRun snapshot.
 
 - [ ] **Step 3: Run tests and verify failure**
 
@@ -637,7 +833,7 @@ Use `select_for_update(skip_locked=True)` when claiming queued work. Define stat
 
 - [ ] **Step 5: Implement PromptVersion and deterministic Fake AI**
 
-Fake AI output must derive from product name, target market, platform and CTA so tests can assert exact content. Validate all output against the PromptVersion JSON Schema before marking AIRun successful.
+Fake AI output must derive from product name, target market, platform, CTA and approved ontology concept codes so tests can assert exact content. Suggested, rejected and deprecated knowledge must not appear in new generation inputs. Validate all output against the PromptVersion JSON Schema before marking AIRun successful.
 
 - [ ] **Step 6: Implement Job APIs**
 
@@ -667,7 +863,7 @@ git commit -m "feat: add unified jobs and auditable AI orchestration"
 
 ---
 
-### Task 9: Generate, Review, and Version Content
+### Task 10: Generate, Review, and Version Content
 
 **Files:**
 - Create: `backend/apps/content/models.py`
@@ -676,15 +872,16 @@ git commit -m "feat: add unified jobs and auditable AI orchestration"
 - Create: `backend/apps/content/serializers.py`
 - Create: `backend/apps/content/views.py`
 - Create: `backend/apps/content/urls.py`
-- Create: `backend/apps/audit/models.py`
-- Create: `backend/apps/audit/services.py`
+- Modify: `backend/apps/audit/models.py`
+- Modify: `backend/apps/audit/services.py`
 - Test: `backend/apps/content/tests/test_generation_flow.py`
 - Test: `backend/apps/content/tests/test_approval_rules.py`
 - Test: `backend/apps/content/tests/test_version_history.py`
 - Test: `backend/apps/audit/tests/test_approval_audit.py`
 
 **Interfaces:**
-- Produces: `MasterContent`, `PlatformContent`, `ApprovalRecord`.
+- Consumes: shared `ApprovalRecord` and `AuditLog` from Task 5.
+- Produces: `MasterContent` and `PlatformContent`.
 - Produces: `POST /content-briefs/{id}/generate-master-content` returning `202 + job_id`.
 - Produces: submit-review, approve, reject and archive actions.
 - Produces: state machines from the approved V1.0 design.
@@ -732,7 +929,7 @@ git commit -m "feat: add traceable content generation and approval"
 
 ---
 
-### Task 10: Implement Mock Publishing and the Calendar API
+### Task 11: Implement Mock Publishing and the Calendar API
 
 **Files:**
 - Create: `backend/apps/publishing/models.py`
@@ -792,7 +989,7 @@ git commit -m "feat: add safe mock publishing and calendar"
 
 ---
 
-### Task 11: Implement UTM, Short Links, Click Events, and Analytics
+### Task 12: Implement UTM, Short Links, Click Events, and Analytics
 
 **Files:**
 - Create: `backend/apps/tracking/models.py`
@@ -851,7 +1048,7 @@ git commit -m "feat: add privacy-safe campaign attribution"
 
 ---
 
-### Task 12: Create the Vue Application Shell and Authentication Flow
+### Task 13: Create the Vue Application Shell and Authentication Flow
 
 **Files:**
 - Create: `frontend/src/main.ts`
@@ -907,26 +1104,31 @@ git commit -m "feat: add branded workbench shell and authentication"
 
 ---
 
-### Task 13: Build Product, Asset, Campaign, and Brief Screens
+### Task 14: Build Knowledge, Product, Asset, Campaign, and Brief Screens
 
 **Files:**
+- Create: `frontend/src/modules/knowledge/KnowledgeConceptPage.vue`
+- Create: `frontend/src/modules/knowledge/KnowledgeReviewPage.vue`
+- Create: `frontend/src/modules/knowledge/api.ts`
 - Create: `frontend/src/modules/products/ProductListPage.vue`
 - Create: `frontend/src/modules/products/ProductEditorPage.vue`
 - Create: `frontend/src/modules/assets/AssetLibraryPage.vue`
 - Create: `frontend/src/modules/campaigns/CampaignListPage.vue`
 - Create: `frontend/src/modules/campaigns/ContentBriefWizard.vue`
 - Create: `frontend/src/modules/campaigns/api.ts`
+- Test: `frontend/src/modules/knowledge/KnowledgeConceptPage.test.ts`
 - Test: `frontend/src/modules/campaigns/ContentBriefWizard.test.ts`
 - Test: `frontend/src/modules/assets/AssetLibraryPage.test.ts`
 
 **Interfaces:**
-- Consumes: product, asset, campaign and brief APIs from Tasks 5–7.
+- Consumes: knowledge, product, asset, campaign and brief APIs from Tasks 5–8.
+- Produces: concept list/filter, relation/evidence detail and SUGGESTED knowledge review without a graph canvas.
 - Produces: four-step wizard `市场与目标 → 产品与素材 → 内容策略 → 确认`.
 - Produces: reusable product and asset selectors for content generation.
 
 - [ ] **Step 1: Write failing wizard tests**
 
-Test required-field guidance, back/forward retention, prohibited-claim display, product and asset selection, final confirmation, and server validation mapping.
+Test knowledge type filters, role-aware approve/reject actions, concept aliases/relations/evidence display, required-field guidance, back/forward retention, prohibited-claim display, product and asset selection, ontology concept selection, final confirmation, and server validation mapping.
 
 - [ ] **Step 2: Run tests and verify failure**
 
@@ -934,26 +1136,30 @@ Test required-field guidance, back/forward retention, prohibited-claim display, 
 pnpm --dir frontend test --run ContentBriefWizard
 ```
 
-- [ ] **Step 3: Implement list and editor screens**
+- [ ] **Step 3: Implement the industrial knowledge screens**
+
+Use a table and detail panel for concepts, aliases, relations and evidence. Operators can submit suggestions, Reviewers can approve organization knowledge, Administrators can manage system knowledge, and READ_ONLY sees only APPROVED records. Do not add a draggable graph visualization.
+
+- [ ] **Step 4: Implement list and editor screens**
 
 Use tables for dense lists, drawers only for small edits, full pages for product and brief forms, explicit empty states, and visible completeness indicators.
 
-- [ ] **Step 4: Implement asset upload and product linking**
+- [ ] **Step 5: Implement asset upload and product linking**
 
 Show checksum duplicates as an existing asset, preserve originals, and surface upload size/type failures with recovery guidance.
 
-- [ ] **Step 5: Run tests and commit**
+- [ ] **Step 6: Run tests and commit**
 
 ```powershell
 pnpm --dir frontend test --run
 pnpm --dir frontend lint
-git add frontend/src/modules/products frontend/src/modules/assets frontend/src/modules/campaigns
-git commit -m "feat: add product asset and campaign workflows"
+git add frontend/src/modules/knowledge frontend/src/modules/products frontend/src/modules/assets frontend/src/modules/campaigns
+git commit -m "feat: add knowledge product asset and campaign workflows"
 ```
 
 ---
 
-### Task 14: Build Content Generation and Review Screens
+### Task 15: Build Content Generation and Review Screens
 
 **Files:**
 - Create: `frontend/src/modules/content/ContentFactoryPage.vue`
@@ -998,7 +1204,7 @@ git commit -m "feat: add content generation and review workbench"
 
 ---
 
-### Task 15: Build Publishing, Calendar, Tracking, and Dashboard Screens
+### Task 16: Build Publishing, Calendar, Tracking, and Dashboard Screens
 
 **Files:**
 - Create: `frontend/src/modules/publishing/PublishQueuePage.vue`
@@ -1042,7 +1248,7 @@ git commit -m "feat: add publishing calendar and attribution dashboard"
 
 ---
 
-### Task 16: Complete OpenAPI Contracts and Cross-Layer Contract Tests
+### Task 17: Complete OpenAPI Contracts and Cross-Layer Contract Tests
 
 **Files:**
 - Create: `backend/tests/test_openapi_contract.py`
@@ -1058,7 +1264,7 @@ git commit -m "feat: add publishing calendar and attribution dashboard"
 
 - [ ] **Step 1: Write failing schema coverage test**
 
-Assert OpenAPI includes Products, Assets, Campaigns, ContentBriefs, MasterContents, PlatformContents, PublishTasks, TrackingLinks, ShortLinks, Jobs and Auth tags; assert all mutation errors share `code`, `message`, and `recovery_action`.
+Assert OpenAPI includes KnowledgeConcepts, KnowledgeRelations, Products, Assets, Campaigns, ContentBriefs, MasterContents, PlatformContents, PublishTasks, TrackingLinks, ShortLinks, Jobs and Auth tags; assert all mutation errors share `code`, `message`, and `recovery_action`.
 
 - [ ] **Step 2: Run test and verify failure**
 
@@ -1090,7 +1296,7 @@ git commit -m "test: enforce API contracts across backend and frontend"
 
 ---
 
-### Task 17: Add Phase A End-to-End Acceptance
+### Task 18: Add Phase A End-to-End Acceptance
 
 **Files:**
 - Create: `frontend/e2e/phase-a-active-growth.spec.ts`
@@ -1101,7 +1307,7 @@ git commit -m "test: enforce API contracts across backend and frontend"
 - Modify: `frontend/playwright.config.ts`
 
 **Interfaces:**
-- Produces: deterministic seed with one organization, four roles, gear product, factory video, campaign, ContentBrief, mock accounts and prompt versions.
+- Produces: deterministic seed with one organization, four roles, approved Gear Manufacturing Ontology concepts/relations, gear product with ProductConceptLink records, factory video, campaign, ContentBrief with concept links, mock accounts and prompt versions.
 - Produces: `pnpm test:e2e` that starts isolated services and never uses normal development data.
 
 - [ ] **Step 1: Write the failing seed test**
@@ -1120,15 +1326,16 @@ def test_phase_a_seed_is_idempotent(call_command):
 The test must:
 
 1. Log in as Operator.
-2. Open the seeded product and original video.
-3. Create a Campaign and ContentBrief for Germany packaging machinery.
-4. Generate MasterContent and wait through `/jobs`.
-5. Log in as Reviewer and approve it.
-6. Generate and approve five PlatformContent records.
-7. Schedule and run Mock Platform publishing.
-8. Create a TrackingLink and ShortLink.
-9. Visit the short URL and verify 302.
-10. Open analytics and verify the visit is attributed to the Campaign and platform.
+2. Open the seeded industrial knowledge page and verify Helical Gear, DIN, Grinding and Packaging Machinery are APPROVED.
+3. Open the seeded product and original video; verify ProductConceptLink records are visible.
+4. Create a Campaign and ContentBrief for Germany packaging machinery and select approved ontology concepts.
+5. Generate MasterContent and wait through `/jobs`; verify AIRun stores the OntologySnapshot.
+6. Log in as Reviewer and approve it.
+7. Generate and approve five PlatformContent records.
+8. Schedule and run Mock Platform publishing.
+9. Create a TrackingLink and ShortLink.
+10. Visit the short URL and verify 302.
+11. Open analytics and verify the visit is attributed to the Campaign and platform.
 
 - [ ] **Step 3: Run tests and verify failure**
 
@@ -1176,8 +1383,9 @@ Phase A is complete only when all conditions are true:
 
 - The new project is independent from `app/platform` and has its own Git history.
 - Organization-scoped API tests prove cross-organization isolation.
+- Gear Manufacturing Ontology concepts, aliases, relations and evidence are usable through API and UI; only APPROVED knowledge enters new snapshots.
 - Products, original assets, Campaigns and ContentBriefs are usable through API and UI.
-- Fake AI creates traceable MasterContent and PlatformContent with PromptVersion and AIRun.
+- Fake AI creates traceable MasterContent and PlatformContent with PromptVersion, AIRun and immutable OntologySnapshot.
 - Reviewer approval is required before scheduling or publishing.
 - Mock Platform publishing is idempotent and handles partial failure.
 - UTM, short redirect, ClickEvent and aggregate analytics are linked correctly.
