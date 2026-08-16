@@ -36,6 +36,7 @@ export const publicRoutes = [
   '/products/conveyor-belts',
   '/products/flat-belts',
   '/products/round-belts',
+  '/industries/:industry/:need',
   '/capabilities',
   '/quality',
   '/contact',
