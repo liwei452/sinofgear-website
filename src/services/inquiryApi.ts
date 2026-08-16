@@ -1,4 +1,6 @@
 import type { InquiryValues } from '@/lib/inquiry'
+import { parseLeadAttribution } from '@/analytics/attribution'
+import { sendInboundRfq } from '@/analytics/leadFeedback'
 
 export interface InquiryResult {
   reference: string
@@ -53,6 +55,18 @@ export async function submitInquiry(
     if (!response.ok) throw new Error(PUBLIC_ERROR)
     const result: unknown = await response.json()
     if (!isInquiryResult(result)) throw new Error(PUBLIC_ERROR)
+    const attribution = parseLeadAttribution(window.location.search)
+    sendInboundRfq({
+      company_name: values.company,
+      country: values.country,
+      contact_name: values.name,
+      email: values.email,
+      product_interest: values.product,
+      message: values.message,
+      file_names: values.drawingFile ? [values.drawingFile.name] : [],
+      landing_page: window.location.pathname,
+      lead_id: attribution.leadId ?? '',
+    })
     return result
   } catch {
     throw new Error(PUBLIC_ERROR)
