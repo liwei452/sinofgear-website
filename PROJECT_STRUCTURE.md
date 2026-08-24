@@ -113,7 +113,7 @@ canonical 默认基于 `https://sinofgears.com`，可用 `VITE_SITE_URL` 覆盖�
 
 `src/services/inquiryApi.ts` 把表单和可选图纸以 `multipart/form-data` 提交到同源 `/api/inquiries`。`functions/api/inquiries.ts` 在 Cloudflare Pages Functions 运行，调用 `functions/lib/inquiryServer.ts` 完成服务端校验、HTML 转义、附件编码和 Resend 邮件发送。
 
-- 通知邮箱由 `INQUIRY_TO_EMAIL` 固定为 `452900431@qq.com`，不能由客户输入覆盖。
+- 通知邮箱由 `INQUIRY_TO_EMAIL` 固定为 `wei.li@sinofgears.com`，不能由客户输入覆盖。
 - 发件身份由 `INQUIRY_FROM_EMAIL` 配置；客户邮箱只作为 `reply_to`。
 - `RESEND_API_KEY` 只能保存为 Cloudflare 加密 Secret。
 - 支持一个 PDF、STEP/STP、IGES/IGS、DXF 或 DWG 文件，最大 15 MB。

@@ -9,7 +9,7 @@ export const siteConfig = {
   founded: '2008',
   defaultUrl: 'https://sinofgears.com',
   rfqEmail: 'inquiries@sinfogear.com',
-  email: 'info@sinof.net',
+  email: 'wei.li@sinofgears.com',
   phone: '+86 731 8888 4918',
   phones: ['+86 731 8888 4918', '+86 731 8686 7700'],
   businessContact: 'Chen Shouyu',

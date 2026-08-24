@@ -24,8 +24,8 @@ describe('contact page inquiry flow', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('link', { name: 'info@sinof.net' }))
-      .toHaveAttribute('href', 'mailto:info@sinof.net')
+    expect(screen.getByRole('link', { name: 'wei.li@sinofgears.com' }))
+      .toHaveAttribute('href', 'mailto:wei.li@sinofgears.com')
   })
 
   it('prefills a product from the URL and shows success after valid submission', async () => {
