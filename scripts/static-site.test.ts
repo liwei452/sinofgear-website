@@ -23,6 +23,22 @@ afterEach(async () => {
 })
 
 describe('static blog generation', () => {
+  it('uses sinofgears.com for every default canonical surface', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir })
+
+    const homepage = await readFile(join(distDir, 'index.html'), 'utf8')
+    const sitemap = await readFile(join(distDir, 'sitemap.xml'), 'utf8')
+    const robots = await readFile(join(distDir, 'robots.txt'), 'utf8')
+
+    expect(homepage).toContain('<link rel="canonical" href="https://sinofgears.com/">')
+    expect(homepage).toContain('<meta property="og:url" content="https://sinofgears.com/">')
+    expect(homepage).toContain('"url":"https://sinofgears.com/"')
+    expect(sitemap).toContain('<loc>https://sinofgears.com/</loc>')
+    expect(sitemap).not.toContain('https://sinfogear.com')
+    expect(robots).toContain('Sitemap: https://sinofgears.com/sitemap.xml')
+  })
+
   it('writes crawlable core pages with unique metadata, canonical URLs, and visible headings', async () => {
     const distDir = await createDist()
     await generateStaticSite({ distDir, siteUrl: 'https://sinfogear.com' })

@@ -7,7 +7,7 @@ export const siteConfig = {
   legalName: 'Changsha Xingfeng Transmission Machinery Co., Ltd.',
   legalNameZh: '长沙市星沣传动机械有限公司',
   founded: '2008',
-  defaultUrl: 'https://sinfogear.com',
+  defaultUrl: 'https://sinofgears.com',
   rfqEmail: 'inquiries@sinfogear.com',
   email: 'info@sinof.net',
   phone: '+86 731 8888 4918',

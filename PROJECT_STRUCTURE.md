@@ -100,7 +100,7 @@ src/
 
 每个路由由 `Seo.tsx` 独立写入 title、meta description、canonical、Open Graph、robots 和 JSON-LD。
 
-canonical 默认基于 `https://sinfogear.com`，可用 `VITE_SITE_URL` 覆盖。
+canonical 默认基于 `https://sinofgears.com`，可用 `VITE_SITE_URL` 覆盖。
 
 结构化数据只使用已确认内容：
 
