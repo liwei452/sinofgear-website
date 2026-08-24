@@ -4,7 +4,7 @@ import { siteConfig } from './site'
 it('keeps export contact details in one configuration', () => {
   expect(siteConfig).toMatchObject({
     rfqEmail: 'inquiries@sinfogear.com',
-    email: 'info@sinof.net',
+    email: 'wei.li@sinofgears.com',
     businessContact: 'Chen Shouyu',
     mobile: '+86 159 7312 7000',
   })

@@ -39,7 +39,7 @@ describe('verified public content', () => {
     )
 
     expect(document.body).toHaveTextContent('inquiries@sinfogear.com')
-    expect(document.body).toHaveTextContent('info@sinof.net')
+    expect(document.body).toHaveTextContent('wei.li@sinofgears.com')
     expect(document.body).toHaveTextContent('Chen Shouyu')
     expect(document.body).toHaveTextContent('+86 159 7312 7000')
   })
