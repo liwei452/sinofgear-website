@@ -22,7 +22,7 @@ npm run build
 复制 `.env.example` 为 `.env`：
 
 ```env
-VITE_SITE_URL=https://sinfogear.com
+VITE_SITE_URL=https://sinofgears.com
 VITE_VISITOR_COUNTRY_CODE=
 VITE_GEO_API_URL=
 VITE_CUSTOMER_SERVICE_ENABLED=false
@@ -97,16 +97,16 @@ npx wrangler pages secret put INQUIRY_FROM_EMAIL --project-name sinoform
 
 询盘使用 `multipart/form-data` 提交，支持一个 PDF、STEP/STP、IGES/IGS、DXF 或 DWG 附件，最大 15 MB。服务器会再次检查必填字段、邮箱、字段长度、文件格式和大小；客户数据不写入 localStorage 或本项目数据库。
 
-### 绑定 sinfogear.com
+### 绑定 sinofgears.com
 
 域名在腾讯云注册，网站部署到 Cloudflare Pages。调整 DNS 时：
 
 1. 截图或导出全部 DNS 记录；
 2. 保留 MX、SPF、DKIM、DMARC 和其他邮件、验证记录；
-3. 在 Cloudflare Pages 添加 `sinfogear.com` 和 `www.sinfogear.com` 自定义域名；
+3. 在 Cloudflare Pages 添加 `sinofgears.com` 和 `www.sinofgears.com` 自定义域名；
 4. 严格使用 Cloudflare 控制台为该项目生成的 DNS 目标值；
 5. 等 HTTPS 生效后验证首页、所有产品路由、语言、SEO 和询盘表单；
-6. 将根域名跳转到规范地址 `https://sinfogear.com`；
+6. 将 `www.sinofgears.com`、`sinfogear.com` 和 `www.sinfogear.com` 跳转到规范地址 `https://sinofgears.com`；
 7. 验收成功后再删除不再使用的旧网站记录。
 
 Cloudflare 的 DNS 目标与项目有关，因此不要提前猜测或填写 CNAME 值。切换前保留旧记录截图，以便异常时快速回滚。

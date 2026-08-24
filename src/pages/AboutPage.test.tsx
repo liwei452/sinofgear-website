@@ -28,6 +28,6 @@ describe('About page', () => {
     }
     expect(document.title).toBe('About SINOF | Transmission Manufacturing Company')
     expect(document.querySelector('link[rel="canonical"]'))
-      .toHaveAttribute('href', 'https://sinfogear.com/about')
+      .toHaveAttribute('href', 'https://sinofgears.com/about')
   })
 })

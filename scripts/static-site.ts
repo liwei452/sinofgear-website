@@ -211,7 +211,7 @@ async function writeRoute(distDir: string, pathname: string, html: string) {
 
 export async function generateStaticSite({
   distDir,
-  siteUrl = 'https://sinfogear.com',
+  siteUrl = 'https://sinofgears.com',
 }: GenerateStaticSiteOptions) {
   const template = await readFile(join(distDir, 'index.html'), 'utf8')
   for (const page of corePages) {
