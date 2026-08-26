@@ -149,7 +149,7 @@ function renderArticle(article: Article): string {
     .filter((product) => product !== undefined)
   const relatedArticles = getRelatedArticles(article)
 
-  return `<main data-static-blog><article><header><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">Insights</a></nav><p>${escapeHtml(article.topic)}</p><h1>${escapeHtml(article.title)}</h1><p>${escapeHtml(article.excerpt)}</p><p>${escapeHtml(article.author)} · <time datetime="${article.publishedAt}">${article.publishedAt}</time> · ${article.readingMinutes} min read</p><img src="${escapeHtml(article.heroImage)}" alt="${escapeHtml(article.heroImageAlt)}"></header><nav aria-label="Table of contents"><h2>In this article</h2><ol>${article.sections.map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a></li>`).join('')}</ol></nav><div>${article.sections.map((section) => `<section><h2 id="${escapeHtml(section.id)}">${escapeHtml(section.title)}</h2>${section.blocks.map(renderBlock).join('')}</section>`).join('')}</div><section><h2>Frequently asked questions</h2>${article.faq.map((item) => `<details><summary>${escapeHtml(item.question)}</summary><p>${escapeHtml(item.answer)}</p></details>`).join('')}</section><section><h2>Discuss your gear drawing with our team</h2><p>Share the drawing, quantity, material, accuracy target, heat treatment, and application context for engineering review.</p><a href="/contact">Request drawing review</a></section><section aria-label="Related products"><h2>Related products</h2>${relatedProducts.map((product) => `<a href="/products/${escapeHtml(product.slug)}">${escapeHtml(product.shortName)}</a>`).join(' ')}</section><section><h2>Related insights</h2>${relatedArticles.map((related) => `<article><h3><a href="/blog/${escapeHtml(related.slug)}">${escapeHtml(related.title)}</a></h3></article>`).join('')}</section></article></main>`
+  return `<main data-static-blog><article data-article-key="${escapeHtml(article.slug)}" data-article-version="${article.version ?? 1}"><header><nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/blog">Insights</a></nav><p>${escapeHtml(article.topic)}</p><h1>${escapeHtml(article.title)}</h1><p>${escapeHtml(article.excerpt)}</p><p>${escapeHtml(article.author)} · <time datetime="${article.publishedAt}">${article.publishedAt}</time> · ${article.readingMinutes} min read</p><img src="${escapeHtml(article.heroImage)}" alt="${escapeHtml(article.heroImageAlt)}"></header><nav aria-label="Table of contents"><h2>In this article</h2><ol>${article.sections.map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a></li>`).join('')}</ol></nav><div>${article.sections.map((section) => `<section><h2 id="${escapeHtml(section.id)}">${escapeHtml(section.title)}</h2>${section.blocks.map(renderBlock).join('')}</section>`).join('')}</div><section><h2>Frequently asked questions</h2>${article.faq.map((item) => `<details><summary>${escapeHtml(item.question)}</summary><p>${escapeHtml(item.answer)}</p></details>`).join('')}</section><section><h2>Discuss your gear drawing with our team</h2><p>Share the drawing, quantity, material, accuracy target, heat treatment, inspection needs, application context, and requested delivery date.</p><a href="/contact">Request drawing review</a></section><section aria-label="Related products"><h2>Related products</h2>${relatedProducts.map((product) => `<a href="/products/${escapeHtml(product.slug)}">${escapeHtml(product.shortName)}</a>`).join(' ')}</section><section><h2>Related insights</h2>${relatedArticles.map((related) => `<article><h3><a href="/blog/${escapeHtml(related.slug)}">${escapeHtml(related.title)}</a></h3></article>`).join('')}</section></article></main>`
 }
 
 function renderCorePage(page: (typeof corePages)[number]): string {
@@ -304,4 +304,13 @@ export async function generateStaticSite({
 
   await writeFile(join(distDir, 'sitemap.xml'), buildSitemap(siteUrl), 'utf8')
   await writeFile(join(distDir, 'robots.txt'), buildRobots(siteUrl), 'utf8')
+  await writeFile(
+    join(distDir, 'growth-content-index.json'),
+    `${JSON.stringify(articles.map((article) => ({
+      article_key: article.slug,
+      version: article.version ?? 1,
+      canonical_url: `${siteUrl.replace(/\/+$/, '')}/blog/${article.slug}`,
+    })), null, 2)}\n`,
+    'utf8',
+  )
 }
