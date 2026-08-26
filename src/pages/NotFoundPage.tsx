@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+﻿import { Link } from 'react-router'
 import { ArrowLeft, FileQuestion, Mail } from 'lucide-react'
 import Seo from '@/components/Seo'
 import { Button } from '@/components/ui/button'
@@ -16,10 +16,10 @@ export default function NotFoundPage() {
         pathname="/404"
         noIndex
       />
-      <section className="bg-steel px-4 py-24 text-center sm:px-6 lg:py-32">
-        <FileQuestion className="mx-auto h-14 w-14 text-sky-400" aria-hidden="true" />
-        <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-white">{page.title}</h1>
-        <p className="mx-auto mt-4 max-w-xl text-slate-300">{page.description}</p>
+      <section className="bg-[hsl(210_45%_98%)] px-4 py-24 text-center sm:px-6 lg:py-32">
+        <FileQuestion className="mx-auto h-14 w-14 text-primary" aria-hidden="true" />
+        <h1 className="mt-6 text-4xl font-semibold tracking-[-0.035em] text-foreground">{page.title}</h1>
+        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">{page.description}</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild variant="secondary">
             <Link to="/products">

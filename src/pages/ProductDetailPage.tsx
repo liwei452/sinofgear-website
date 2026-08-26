@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowRight,
   CheckCircle2,
   Factory,
@@ -38,9 +38,9 @@ function ListPanel({
   icon: typeof Layers3
 }) {
   return (
-    <section className="rounded-2xl border bg-white p-6 shadow-sm sm:p-7">
+    <section className="border-t border-border bg-white px-1 py-6 sm:py-7">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-primary">
+        <span className="flex h-10 w-10 items-center justify-center border border-primary/20 bg-accent text-primary">
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <h2 className="text-xl font-bold tracking-tight">{title}</h2>
@@ -82,33 +82,33 @@ export default function ProductDetailPage() {
         structuredData={structuredData}
       />
 
-      <section className="relative overflow-hidden bg-steel py-12 lg:py-20">
-        <div className="absolute inset-0 bg-industrial-grid opacity-40" />
+      <section className="relative overflow-hidden border-b border-border bg-[hsl(210_45%_98%)] py-12 lg:py-20">
+        <div className="absolute inset-0 bg-industrial-grid opacity-55" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <nav aria-label="Breadcrumb" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-slate-400">
-            <Link to="/" className="hover:text-white">{t('nav.home')}</Link>
+          <nav aria-label="Breadcrumb" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Link to="/" className="hover:text-primary">{t('nav.home')}</Link>
             <span aria-hidden="true">/</span>
-            <Link to="/products" className="hover:text-white">{t('nav.products')}</Link>
+            <Link to="/products" className="hover:text-primary">{t('nav.products')}</Link>
             <span aria-hidden="true">/</span>
-            <span className="text-white">{product.shortName}</span>
+            <span className="text-foreground">{product.shortName}</span>
           </nav>
 
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-400">{text('Made to drawing')}</p>
-              <h1 className="mt-4 text-balance text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <p className="text-xs font-semibold tracking-[0.14em] text-primary">{text('Made to drawing')}</p>
+              <h1 className="mt-4 text-balance text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl lg:text-6xl">
                 {product.name}
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">{product.valueProposition}</p>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400">{product.description}</p>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-foreground/85">{product.valueProposition}</p>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">{product.description}</p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="gap-2 bg-sky-500 font-bold hover:bg-sky-400">
+                <Button asChild size="lg" className="gap-2 font-semibold">
                   <Link to={quoteHref}>
                     <Mail className="h-5 w-5" />
                     {t('action.requestQuote')}
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/5 text-white hover:bg-white/15 hover:text-white">
+                <Button asChild size="lg" variant="outline" className="border-border bg-white text-foreground hover:bg-accent hover:text-foreground">
                   <Link to="/products">
                     {t('action.viewAllProducts')}
                     <ArrowRight className="h-5 w-5" />
@@ -116,11 +116,11 @@ export default function ProductDetailPage() {
                 </Button>
               </div>
             </div>
-            <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-2 shadow-2xl shadow-black/30">
+            <div className="overflow-hidden border border-border bg-white p-2 shadow-[0_24px_70px_-42px_hsl(var(--foreground)/.45)]">
               <img
                 src={product.image}
                 alt={product.imageAlt}
-                className="aspect-[4/3] w-full rounded-2xl object-cover"
+                className="aspect-[4/3] w-full object-cover"
               />
             </div>
           </div>
@@ -131,9 +131,9 @@ export default function ProductDetailPage() {
         <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
           <ListPanel title={t('section.features')} items={product.features} icon={Layers3} />
           <ListPanel title={t('section.materials')} items={product.materials} icon={Factory} />
-          <section className="rounded-2xl border bg-white p-6 shadow-sm sm:p-7">
+          <section className="border-t border-border bg-white px-1 py-6 sm:py-7">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-primary">
+              <span className="flex h-10 w-10 items-center justify-center border border-primary/20 bg-accent text-primary">
                 <Gauge className="h-5 w-5" aria-hidden="true" />
               </span>
               <h2 className="text-xl font-bold tracking-tight">{t('section.precision')}</h2>

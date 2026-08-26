@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, FileText, Mail } from 'lucide-react'
+﻿import { ArrowRight, Clock, FileText, Mail } from 'lucide-react'
 import { Link } from 'react-router'
 import Seo from '@/components/Seo'
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +14,7 @@ function ArticleCard({ article, featured = false }: { article: (typeof articles)
   return (
     <article
       data-testid="article-card"
-      className={`group overflow-hidden rounded-2xl border bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
+      className={`group overflow-hidden border border-border bg-card transition-colors hover:border-primary/45 ${
         featured ? 'grid md:grid-cols-2' : 'flex h-full flex-col'
       }`}
     >
@@ -69,18 +69,18 @@ export default function BlogIndexPage() {
         structuredData={[buildBlogBreadcrumbSchema(undefined, getSiteUrl())]}
       />
 
-      <section className="bg-steel px-4 py-20 text-white sm:px-6 lg:py-28">
+      <section className="border-b border-border bg-[hsl(210_45%_98%)] px-4 py-20 text-foreground sm:px-6 lg:py-28">
         <div className="mx-auto max-w-5xl text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/15 text-sky-300">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center border border-primary/20 bg-accent text-primary">
             <FileText className="h-6 w-6" aria-hidden="true" />
           </div>
-          <p className="mt-5 text-sm font-bold uppercase tracking-[0.2em] text-sky-300">SINOF Insights</p>
+          <p className="mt-5 text-xs font-semibold tracking-[0.14em] text-primary">SINOF Insights</p>
           <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">Gear Sourcing Insights</h1>
-          <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+          <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
             Practical engineering and sourcing guidance for drawing-led custom gear projects.
           </p>
           {lang !== 'en' && (
-            <p className="mx-auto mt-6 max-w-2xl rounded-lg border border-sky-300/25 bg-sky-400/10 px-4 py-3 text-sm text-sky-100">
+            <p className="mx-auto mt-6 max-w-2xl border border-primary/20 bg-accent px-4 py-3 text-sm text-primary">
               {englishNotice}
             </p>
           )}

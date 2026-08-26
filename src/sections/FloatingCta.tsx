@@ -1,20 +1,20 @@
-import { Mail } from 'lucide-react'
+﻿import { FileUp } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
 import { useLang } from '@/i18n/LanguageContext'
 
 export default function FloatingCta() {
   const { pathname } = useLocation()
-  const { t } = useLang()
+  const { text } = useLang()
   if (pathname === '/contact') return null
 
   return (
     <Link
       to="/contact"
-      aria-label={t('action.requestQuote')}
-      className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-sky-600 px-5 py-3.5 font-bold text-white shadow-xl shadow-sky-900/40 transition-all duration-300 hover:scale-105 hover:bg-sky-500"
+      aria-label={text('Submit Drawing')}
+      className="fixed bottom-4 right-4 z-40 flex min-h-12 items-center gap-2 rounded-md border border-primary/20 bg-primary px-4 py-3 font-semibold text-white shadow-[0_14px_36px_-18px_hsl(var(--primary)/.9)] transition duration-200 hover:-translate-y-0.5 hover:bg-[hsl(209_100%_31%)] sm:bottom-6 sm:right-6"
     >
-      <Mail className="h-5 w-5" />
-      <span className="text-sm">{t('action.inquire')}</span>
+      <FileUp className="h-5 w-5" aria-hidden="true" />
+      <span className="hidden text-sm sm:inline">{text('Submit Drawing')}</span>
     </Link>
   )
 }
