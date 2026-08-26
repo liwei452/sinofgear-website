@@ -137,7 +137,10 @@ describe('static blog generation', () => {
     const document = new DOMParser().parseFromString(sitemap, 'application/xml')
     expect(document.querySelector('parsererror')).toBeNull()
     const locations = [...document.getElementsByTagName('loc')].map((node) => node.textContent)
-    const expectedLocations = publicRoutes.map((route) =>
+    expect(locations).not.toContain('https://sinfogear.com/industries/:industry/:need')
+    const expectedLocations = publicRoutes
+      .filter((route) => !route.includes(':'))
+      .map((route) =>
       route === '/' ? 'https://sinfogear.com/' : `https://sinfogear.com${route}`,
     )
     expect(locations).toEqual(expectedLocations)

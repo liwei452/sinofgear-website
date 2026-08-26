@@ -98,7 +98,7 @@ function buildSitemap(siteUrl: string): string {
   const articleDates = new Map(
     articles.map((article) => [`/blog/${article.slug}`, article.updatedAt]),
   )
-  const uniqueRoutes = [...new Set<string>(publicRoutes)]
+  const uniqueRoutes = [...new Set<string>(publicRoutes.filter((route) => !route.includes(':')))]
   const entries = uniqueRoutes
     .map((route) => {
       const location = route === '/' ? `${normalizedSiteUrl}/` : `${normalizedSiteUrl}${route}`
