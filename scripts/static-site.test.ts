@@ -106,12 +106,25 @@ describe('static blog generation', () => {
       const html = await readFile(join(distDir, 'blog', `${article.slug}.html`), 'utf8')
       expect(html).toContain(`<title>${article.title} | SINOF</title>`)
       expect(html).toContain(`<h1>${article.title}</h1>`)
+      expect(html).toContain(`data-article-key="${article.slug}"`)
+      expect(html).toContain(`data-article-version="${article.version ?? 1}"`)
       expect(html).toContain(`<link rel="canonical" href="https://sinfogear.com/blog/${article.slug}">`)
       expect(html).toContain('"@type":"BlogPosting"')
       expect(html).toContain(article.sections[0].blocks[0].type === 'paragraph' ? article.sections[0].blocks[0].text : article.excerpt)
       expect(html).toContain('Request drawing review')
       expect(html).toContain('data-prerendered')
     }
+  })
+
+  it('writes the public growth content index used by publication status', async () => {
+    const distDir = await createDist()
+    await generateStaticSite({ distDir, siteUrl: 'https://sinofgears.com' })
+    const index = JSON.parse(await readFile(join(distDir, 'growth-content-index.json'), 'utf8'))
+    expect(index).toEqual(articles.map((article) => ({
+      article_key: article.slug,
+      version: article.version ?? 1,
+      canonical_url: `https://sinofgears.com/blog/${article.slug}`,
+    })))
   })
 
   it('escapes article text before writing it into HTML', async () => {

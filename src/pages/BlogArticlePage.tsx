@@ -88,7 +88,7 @@ export default function BlogArticlePage() {
         ]}
       />
 
-      <article>
+      <article data-article-key={article.slug} data-article-version={article.version ?? 1}>
         <header className="border-b border-border bg-[hsl(210_45%_98%)] px-4 py-16 text-foreground sm:px-6 lg:py-20">
           <div className="mx-auto max-w-5xl">
             <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">

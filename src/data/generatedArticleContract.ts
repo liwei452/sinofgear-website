@@ -151,7 +151,7 @@ export function parseGeneratedArticle(input: unknown): Article {
   const articleKey = text(value.article_key, 'article_key')
   if (!articleKeyPattern.test(articleKey)) fail('article_key')
   if (!Number.isInteger(value.version) || Number(value.version) <= 0) fail('version')
-  if (value.organization_id !== 'sinofgear') fail('organization_id')
+  text(value.organization_id, 'organization_id')
   if (value.site_code !== 'sinofgears') fail('site_code')
   if (value.language !== 'en') fail('language')
   const title = text(value.title, 'title')
