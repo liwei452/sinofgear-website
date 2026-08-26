@@ -40,6 +40,15 @@ function request(path: string, method = 'POST', body: unknown = article, token =
 }
 
 describe('SINOF growth publishing bridge', () => {
+  it('rejects requests when the deployment token is not configured', async () => {
+    const runtime = { ...env(), GROWTH_PUBLISH_TOKEN: '' }
+    const response = await handleGrowthRequest({
+      request: request('/growth/v1/pages', 'GET', undefined, 'undefined'),
+      env: runtime,
+    })
+    expect(response.status).toBe(401)
+  })
+
   it('rejects invalid credentials before reading the payload', async () => {
     const response = await handleGrowthRequest({ request: request('/growth/v1/articles/gear-inspection-guide/preview', 'POST', article, 'wrong'), env: env() })
     expect(response.status).toBe(401)

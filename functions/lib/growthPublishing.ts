@@ -26,7 +26,8 @@ function json(body: unknown, status = 200, headers: HeadersInit = {}) {
 }
 
 function authorized(request: Request, env: GrowthPublishingEnv): boolean {
-  return request.headers.get('authorization') === `Bearer ${env.GROWTH_PUBLISH_TOKEN}`
+  return Boolean(env.GROWTH_PUBLISH_TOKEN)
+    && request.headers.get('authorization') === `Bearer ${env.GROWTH_PUBLISH_TOKEN}`
 }
 
 function encodedContent(value: unknown): string {
