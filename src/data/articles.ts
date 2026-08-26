@@ -1,5 +1,6 @@
 export type { Article, ArticleBlock, ArticleSection } from './articleTypes'
 import type { Article } from './articleTypes'
+import { generatedArticles, mergeArticles } from './generatedArticles'
 
 const commonMeta = {
   publishedAt: '2026-08-06',
@@ -7,7 +8,7 @@ const commonMeta = {
   author: 'SINOF Engineering Team' as const,
 }
 
-export const articles: Article[] = [
+const legacyArticles: Article[] = [
   {
     ...commonMeta,
     slug: 'what-information-is-needed-for-custom-gear-rfq',
@@ -632,6 +633,8 @@ export const articles: Article[] = [
     ],
   },
 ]
+
+export const articles: Article[] = mergeArticles(legacyArticles, generatedArticles)
 
 export const articleRoutes = articles.map(({ slug }) => `/blog/${slug}`)
 

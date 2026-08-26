@@ -69,17 +69,18 @@ function parseSections(body: string): ArticleSection[] {
   const usedIds = new Set<string>()
   const sections: ArticleSection[] = []
   let current: ArticleSection | null = null
-  const section = (title: string) => {
-    current = { id: uniqueId(title, usedIds), title, blocks: [] }
-    sections.push(current)
+  const startSection = (title: string): ArticleSection => {
+    const created = { id: uniqueId(title, usedIds), title, blocks: [] }
+    current = created
+    sections.push(created)
+    return created
   }
   let index = 0
   while (index < lines.length) {
     const line = lines[index].trim()
     if (!line) { index += 1; continue }
-    if (line.startsWith('## ')) { section(text(line.slice(3), 'body')); index += 1; continue }
-    if (!current) section('Overview')
-    const active = current as ArticleSection
+    if (line.startsWith('## ')) { startSection(text(line.slice(3), 'body')); index += 1; continue }
+    const active = current ?? startSection('Overview')
     if (line.startsWith('### ')) {
       const title = text(line.slice(4), 'body')
       active.blocks.push({ type: 'subheading', id: uniqueId(title, usedIds), title })
