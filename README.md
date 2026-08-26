@@ -110,3 +110,20 @@ npx wrangler pages secret put INQUIRY_FROM_EMAIL --project-name sinoform
 7. 验收成功后再删除不再使用的旧网站记录。
 
 Cloudflare 的 DNS 目标与项目有关，因此不要提前猜测或填写 CNAME 值。切换前保留旧记录截图，以便异常时快速回滚。
+
+## Growth Engine 博客发布桥
+
+网站保持静态预渲染。Growth Engine 只把人工批准的英文文章写入 `content/blog/{article_key}.json`；Cloudflare Pages 随后执行既有构建，生成博客页面、站点地图、结构化数据和公开内容索引。
+
+Cloudflare Pages 需要配置：
+
+- KV 绑定：`BLOG_PREVIEWS`
+- 加密 Secret：`GROWTH_PUBLISH_TOKEN`
+- 加密 Secret：`GITHUB_CONTENT_TOKEN`
+- 变量：`GROWTH_ORGANIZATION_ID`
+- 变量：`GITHUB_REPOSITORY=liwei452/sinofgear-website`
+- 变量：`GITHUB_BRANCH=master`
+
+`GITHUB_CONTENT_TOKEN` 只授予本仓库 Contents 写权限。预览地址位于 `/growth-preview/{article_key}?version={version}`，同时返回 `noindex` 响应头和页面标记。正式发布接口先返回 `PUBLISHING`；只有线上静态文章带有匹配的 `data-article-key` 与 `data-article-version` 时才返回 `PUBLISHED`。
+
+不要把生产 Token 写入 `.env`、仓库或前端变量。首次生产接入、验收和回退步骤见 Growth Engine 仓库的 `docs/sinof-site-publishing-operations.md`。
