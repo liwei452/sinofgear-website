@@ -1,4 +1,4 @@
-import { BookOpenCheck, Boxes, FileCheck2, Mail, Ruler, ScanLine, ShieldCheck } from 'lucide-react'
+﻿import { BookOpenCheck, Boxes, FileCheck2, Mail, Ruler, ScanLine, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router'
 import PageHero from '@/components/PageHero'
 import Seo from '@/components/Seo'
@@ -59,7 +59,7 @@ export default function QualityPage() {
             <img
               src="/assets/factory-workshop.webp"
               alt={text('SINOF gear and transmission component production workshop in Changsha')}
-              className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
+              className="aspect-[4/3] w-full border border-border object-cover"
             />
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">{text('Before production')}</p>
@@ -75,8 +75,8 @@ export default function QualityPage() {
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {qualityTopics.map((topic) => (
-              <article key={topic.title} className="rounded-2xl border bg-white p-6 shadow-sm">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
+              <article key={topic.title} className="border-t border-border bg-white px-1 py-6">
+                <span className="flex h-11 w-11 items-center justify-center border border-primary/20 bg-accent text-primary">
                   <topic.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <h3 className="mt-5 text-lg font-bold">{text(topic.title)}</h3>
@@ -87,15 +87,15 @@ export default function QualityPage() {
         </div>
       </section>
 
-      <section className="bg-steel py-16 text-white">
+      <section className="border-y border-primary/15 bg-[hsl(210_45%_97%)] py-16 text-foreground">
         <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 px-4 sm:px-6 md:flex-row md:items-center lg:px-8">
           <div>
             <h2 className="text-2xl font-extrabold sm:text-3xl">{text('Define the quality package in your RFQ')}</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
               {text('Mark critical characteristics and list the records your team needs so they can be reviewed as part of the quotation.')}
             </p>
           </div>
-          <Button asChild size="lg" className="shrink-0 gap-2 bg-sky-500 font-bold hover:bg-sky-400">
+          <Button asChild size="lg" className="shrink-0 gap-2 font-semibold">
             <Link to="/contact">
               <Mail className="h-5 w-5" />
               {t('action.requestQuote')}

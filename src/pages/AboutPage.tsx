@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadgeCheck,
   CalendarDays,
   Cog,
@@ -63,7 +63,7 @@ export default function AboutPage() {
             <img
               src="/assets/factory-showroom.webp"
               alt={companyGallery[1].alt}
-              className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
+              className="aspect-[4/3] w-full border border-border object-cover"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function AboutPage() {
             {profile.facts.map((fact, index) => {
               const Icon = factIcons[index]
               return (
-                <article key={fact.label} className="rounded-2xl border bg-white p-6 shadow-sm">
+                <article key={fact.label} className="border-t border-border bg-white px-1 py-6">
                   {Icon && (
                     <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                   )}
@@ -89,7 +89,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-extrabold tracking-tight">{profile.equipmentTitle}</h2>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {companyGallery.map((image) => (
-              <figure key={image.src} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+              <figure key={image.src} className="overflow-hidden border border-border bg-white">
                 <img src={image.src} alt={image.alt} className="aspect-[4/3] w-full object-cover" loading="lazy" />
               </figure>
             ))}
@@ -99,7 +99,7 @@ export default function AboutPage() {
 
       <section className="py-16 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
-          <article className="rounded-3xl border bg-white p-7 shadow-sm sm:p-9">
+          <article className="border border-border bg-white p-7 sm:p-9">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-primary">
               <Cog className="h-6 w-6" aria-hidden="true" />
             </span>
@@ -114,8 +114,8 @@ export default function AboutPage() {
             </ul>
           </article>
 
-          <article className="rounded-3xl bg-steel p-7 text-white shadow-sm sm:p-9">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-sky-400">
+          <article className="border border-primary/15 bg-[hsl(210_45%_97%)] p-7 text-foreground sm:p-9">
+            <span className="flex h-12 w-12 items-center justify-center border border-primary/20 bg-accent text-primary">
               <Microscope className="h-6 w-6" aria-hidden="true" />
             </span>
             <h2 className="mt-5 text-2xl font-extrabold">{profile.qualityTitle}</h2>
@@ -123,8 +123,8 @@ export default function AboutPage() {
               {profile.quality.map((item, index) => {
                 const Icon = index === 1 ? Ruler : BadgeCheck
                 return (
-                  <li key={item} className="flex gap-3 text-sm leading-6 text-slate-300">
-                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" aria-hidden="true" />
+                  <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
+                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                     <span>{item}</span>
                   </li>
                 )
@@ -145,7 +145,7 @@ export default function AboutPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {profile.products.map((item) => (
-                <div key={item} className="rounded-2xl border bg-white p-5 text-sm font-semibold leading-6 shadow-sm">
+                <div key={item} className="border-l-2 border-primary bg-[hsl(210_45%_98%)] p-5 text-sm font-semibold leading-6">
                   {item}
                 </div>
               ))}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import Header from '@/sections/Header'
 import Footer from '@/sections/Footer'
@@ -14,7 +14,7 @@ export default function SiteLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <main className="min-h-[70vh] pt-16 lg:pt-[72px]">
+      <main className="min-h-[70vh] pt-16 lg:pt-[76px]">
         <Outlet />
       </main>
       <Footer />

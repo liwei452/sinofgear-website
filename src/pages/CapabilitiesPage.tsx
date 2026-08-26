@@ -1,4 +1,4 @@
-import { ClipboardCheck, FileCog, Layers3, Mail, PackageCheck, ScanSearch, Wrench } from 'lucide-react'
+﻿import { ClipboardCheck, FileCog, Layers3, Mail, PackageCheck, ScanSearch, Wrench } from 'lucide-react'
 import { Link } from 'react-router'
 import PageHero from '@/components/PageHero'
 import Seo from '@/components/Seo'
@@ -69,14 +69,14 @@ export default function CapabilitiesPage() {
             <img
               src="/assets/factory-production-floor.webp"
               alt={text('SINOF transmission manufacturing floor with organized CNC work areas')}
-              className="aspect-[4/3] w-full rounded-3xl object-cover shadow-xl"
+              className="aspect-[4/3] w-full border border-border object-cover"
             />
           </div>
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {reviewAreas.map((area) => (
-              <article key={area.title} className="rounded-2xl border bg-white p-6 shadow-sm">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
+              <article key={area.title} className="border-t border-border bg-white px-1 py-6">
+                <span className="flex h-11 w-11 items-center justify-center border border-primary/20 bg-accent text-primary">
                   <area.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <h3 className="mt-5 text-lg font-bold">{text(area.title)}</h3>
@@ -89,9 +89,9 @@ export default function CapabilitiesPage() {
 
       <section className="bg-secondary/50 py-16 lg:py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-steel p-7 text-white sm:p-10">
+          <div className="border border-primary/15 bg-[hsl(210_45%_97%)] p-7 text-foreground sm:p-10">
             <h2 className="text-2xl font-extrabold sm:text-3xl">{text('What to include in your inquiry')}</h2>
-            <div className="mt-6 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+            <div className="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
               {[
                 'Dimensioned drawing and available 3D model',
                 'Product quantity and expected repeat demand',
@@ -100,12 +100,12 @@ export default function CapabilitiesPage() {
                 'Mating component or assembly information',
                 'Inspection reports and document expectations',
               ].map((item) => (
-                <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <div key={item} className="border border-border bg-white px-4 py-3">
                   {text(item)}
                 </div>
               ))}
             </div>
-            <Button asChild size="lg" className="mt-8 gap-2 bg-sky-500 font-bold hover:bg-sky-400">
+            <Button asChild size="lg" className="mt-8 gap-2 font-semibold">
               <Link to="/contact">
                 <Mail className="h-5 w-5" />
                 {text('Start an RFQ')}
