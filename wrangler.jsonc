@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sinoform",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-08-26",
+  "kv_namespaces": [
+    {
+      "binding": "BLOG_PREVIEWS",
+      "id": "8aaedc094c4a4fdfabd8f976b40005c1"
+    }
+  ],
+  "vars": {
+    "GROWTH_ORGANIZATION_ID": "0fb9cdc7-365a-4d81-bcd2-24317ff47925",
+    "GITHUB_REPOSITORY": "liwei452/sinofgear-website",
+    "GITHUB_BRANCH": "master"
+  }
+}
