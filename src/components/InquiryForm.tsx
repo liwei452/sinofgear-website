@@ -114,11 +114,19 @@ export default function InquiryForm({
     ) : null
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
+    <form
+      aria-label="Request a custom gear quote"
+      method="post"
+      action="/api/inquiries"
+      encType="multipart/form-data"
+      onSubmit={handleSubmit}
+      className="rounded-3xl bg-white p-6 shadow-xl sm:p-8"
+    >
       <div className="absolute left-[-10000px]" aria-hidden="true">
         <Label htmlFor="website">Website</Label>
         <Input
           id="website"
+          name="website"
           tabIndex={-1}
           autoComplete="off"
           value={values.website}
@@ -145,6 +153,9 @@ export default function InquiryForm({
           <Label htmlFor="name">{copy.fields.name} *</Label>
           <Input
             id="name"
+            name="name"
+            required
+            autoComplete="name"
             value={values.name}
             onChange={(event) => setField('name', event.target.value)}
             placeholder={copy.placeholders.name}
@@ -157,6 +168,9 @@ export default function InquiryForm({
           <Label htmlFor="company">{copy.fields.company} *</Label>
           <Input
             id="company"
+            name="company"
+            required
+            autoComplete="organization"
             value={values.company}
             onChange={(event) => setField('company', event.target.value)}
             placeholder={copy.placeholders.company}
@@ -169,7 +183,10 @@ export default function InquiryForm({
           <Label htmlFor="email">{copy.fields.email} *</Label>
           <Input
             id="email"
+            name="email"
             type="email"
+            required
+            autoComplete="email"
             value={values.email}
             onChange={(event) => setField('email', event.target.value)}
             placeholder={copy.placeholders.email}
@@ -182,6 +199,9 @@ export default function InquiryForm({
           <Label htmlFor="country">{copy.fields.country} *</Label>
           <select
             id="country"
+            name="country"
+            required
+            autoComplete="country-name"
             value={values.country}
             onChange={(event) => setField('country', event.target.value)}
             className={selectClassName}
@@ -199,6 +219,8 @@ export default function InquiryForm({
           <Label htmlFor="product">{copy.fields.product} *</Label>
           <select
             id="product"
+            name="product"
+            required
             value={values.product}
             onChange={(event) => setField('product', event.target.value as ProductSlug | '')}
             className={selectClassName}
@@ -216,6 +238,7 @@ export default function InquiryForm({
           <Label htmlFor="quantity">{copy.fields.quantity}</Label>
           <Input
             id="quantity"
+            name="quantity"
             value={values.quantity}
             onChange={(event) => setField('quantity', event.target.value)}
             placeholder={copy.placeholders.quantity}
@@ -225,6 +248,7 @@ export default function InquiryForm({
           <Label htmlFor="material">{copy.fields.material}</Label>
           <select
             id="material"
+            name="material"
             value={values.material}
             onChange={(event) => setField('material', event.target.value)}
             className={selectClassName}
@@ -241,6 +265,7 @@ export default function InquiryForm({
             <FileUp className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="drawing"
+              name="drawing"
               type="file"
               accept=".pdf,.step,.stp,.iges,.igs,.dxf,.dwg"
               className="h-auto min-h-10 pl-9 file:mr-3"
@@ -258,6 +283,8 @@ export default function InquiryForm({
         <Label htmlFor="message">{copy.fields.message} *</Label>
         <Textarea
           id="message"
+          name="message"
+          required
           rows={6}
           value={values.message}
           onChange={(event) => setField('message', event.target.value)}

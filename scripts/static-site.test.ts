@@ -30,6 +30,7 @@ describe('static blog generation', () => {
     const homepage = await readFile(join(distDir, 'index.html'), 'utf8')
     const sitemap = await readFile(join(distDir, 'sitemap.xml'), 'utf8')
     const robots = await readFile(join(distDir, 'robots.txt'), 'utf8')
+    const llms = await readFile(join(distDir, 'llms.txt'), 'utf8')
 
     expect(homepage).toContain('<link rel="canonical" href="https://sinofgears.com/">')
     expect(homepage).toContain('<meta property="og:url" content="https://sinofgears.com/">')
@@ -37,6 +38,11 @@ describe('static blog generation', () => {
     expect(sitemap).toContain('<loc>https://sinofgears.com/</loc>')
     expect(sitemap).not.toContain('https://sinfogear.com')
     expect(robots).toContain('Sitemap: https://sinofgears.com/sitemap.xml')
+    expect(llms).toContain('# SINOF')
+    expect(llms).toContain('Canonical website: https://sinofgears.com/')
+    expect(llms).toContain('[Products](https://sinofgears.com/products)')
+    expect(llms).toContain('Contact: wei.li@sinofgears.com')
+    expect(llms).toContain('Co., Ltd.\n\nCanonical website')
   })
 
   it('writes crawlable core pages with unique metadata, canonical URLs, and visible headings', async () => {
@@ -62,6 +68,7 @@ describe('static blog generation', () => {
       expect(html).toContain(`<h1>${heading}</h1>`)
       expect(html).toContain('data-prerendered')
       expect(html).toContain('"@type":"Organization"')
+      expect(html.match(/id="sinoform-route-schema"/g)).toHaveLength(1)
     }
 
     expect(titles.size).toBe(pages.length)

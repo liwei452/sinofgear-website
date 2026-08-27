@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { articles, getRelatedArticles, type Article, type ArticleBlock } from '../src/data/articles'
 import { getProductBySlug, products, type Product } from '../src/data/products'
-import { publicRoutes } from '../src/data/site'
+import { publicRoutes, siteConfig } from '../src/data/site'
 import {
   buildArticleSchema,
   buildBlogBreadcrumbSchema,
@@ -117,6 +117,34 @@ function buildRobots(siteUrl: string): string {
   return `User-agent: *\nAllow: /\n\nSitemap: ${normalizedSiteUrl}/sitemap.xml\n`
 }
 
+function buildLlmsTxt(siteUrl: string): string {
+  const normalizedSiteUrl = siteUrl.replace(/[/]+$/, '')
+  const productLinks = products
+    .map((product) => `- [${product.name}](${normalizedSiteUrl}/products/${product.slug})`)
+    .join('\n')
+
+  return `# SINOF
+
+> Drawing-led custom gear and transmission component supplier operated by ${siteConfig.legalName}
+
+Canonical website: ${normalizedSiteUrl}/
+Contact: ${siteConfig.email}
+
+## Core pages
+- [Products](${normalizedSiteUrl}/products)
+- [Manufacturing capabilities](${normalizedSiteUrl}/capabilities)
+- [Quality and inspection planning](${normalizedSiteUrl}/quality)
+- [Request a drawing review](${normalizedSiteUrl}/contact)
+- [Technical insights](${normalizedSiteUrl}/blog)
+
+## Product families
+${productLinks}
+
+## Usage
+Use the canonical pages above for current product, manufacturing, quality, and RFQ information. Technical feasibility remains subject to drawing and application review.
+`
+}
+
 function renderBlock(block: ArticleBlock): string {
   switch (block.type) {
     case 'paragraph':
@@ -184,7 +212,7 @@ export function injectStaticPage(
       ? `<meta property="article:modified_time" content="${escapeHtml(meta.updatedAt)}">`
       : '',
   ].join('')
-  const additions = `<link rel="canonical" href="${escapeHtml(canonical)}"><meta property="og:title" content="${escapeHtml(meta.title)}"><meta property="og:description" content="${escapeHtml(meta.description)}"><meta property="og:type" content="${meta.type}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:image" content="${escapeHtml(image)}">${articleMeta}<script type="application/ld+json">${serializeJsonLd(meta.structuredData)}</script>`
+  const additions = `<link rel="canonical" href="${escapeHtml(canonical)}"><meta property="og:title" content="${escapeHtml(meta.title)}"><meta property="og:description" content="${escapeHtml(meta.description)}"><meta property="og:type" content="${meta.type}"><meta property="og:url" content="${escapeHtml(canonical)}"><meta property="og:image" content="${escapeHtml(image)}">${articleMeta}<script id="sinoform-route-schema" type="application/ld+json">${serializeJsonLd(meta.structuredData)}</script>`
 
   return template
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`)
@@ -304,6 +332,7 @@ export async function generateStaticSite({
 
   await writeFile(join(distDir, 'sitemap.xml'), buildSitemap(siteUrl), 'utf8')
   await writeFile(join(distDir, 'robots.txt'), buildRobots(siteUrl), 'utf8')
+  await writeFile(join(distDir, 'llms.txt'), buildLlmsTxt(siteUrl), 'utf8')
   await writeFile(
     join(distDir, 'growth-content-index.json'),
     `${JSON.stringify(articles.map((article) => ({

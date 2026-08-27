@@ -8,7 +8,6 @@ export const siteConfig = {
   legalNameZh: '长沙市星沣传动机械有限公司',
   founded: '2008',
   defaultUrl: 'https://sinofgears.com',
-  rfqEmail: 'inquiries@sinfogear.com',
   email: 'wei.li@sinofgears.com',
   phone: '+86 731 8888 4918',
   phones: ['+86 731 8888 4918', '+86 731 8686 7700'],

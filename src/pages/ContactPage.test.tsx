@@ -26,6 +26,38 @@ describe('contact page inquiry flow', () => {
 
     expect(screen.getByRole('link', { name: 'wei.li@sinofgears.com' }))
       .toHaveAttribute('href', 'mailto:wei.li@sinofgears.com')
+    expect(document.body).not.toHaveTextContent('inquiries@sinfogear.com')
+  })
+
+  it('exposes native form semantics for browsers and assistive technology', () => {
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <ContactPage />
+      </MemoryRouter>,
+    )
+
+    const form = screen.getByRole('form', { name: 'Request a custom gear quote' })
+    expect(form).toHaveAttribute('method', 'post')
+    expect(form).toHaveAttribute('action', '/api/inquiries')
+    expect(form).toHaveAttribute('enctype', 'multipart/form-data')
+
+    for (const name of ['name', 'company', 'email', 'country', 'product', 'message']) {
+      expect(form.querySelector(`[name="${name}"]`)).toBeRequired()
+    }
+    for (const name of ['quantity', 'material', 'drawing', 'website']) {
+      expect(form.querySelector(`[name="${name}"]`)).toBeInTheDocument()
+    }
+  })
+
+  it('explains drawing delivery, repository handling, and NDA availability', () => {
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <ContactPage />
+      </MemoryRouter>,
+    )
+
+    expect(document.body).toHaveTextContent(/does not create a document repository/i)
+    expect(document.body).toHaveTextContent(/NDA/i)
   })
 
   it('prefills a product from the URL and shows success after valid submission', async () => {

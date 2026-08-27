@@ -65,13 +65,6 @@ export default function ContactPage({ submitter }: { submitter?: InquirySubmitte
               <div className="mt-5 space-y-4 text-sm">
                 <p className="font-bold text-foreground">{lang === 'zh' ? siteConfig.businessContactZh : siteConfig.businessContact}</p>
                 <a
-                  href={`mailto:${siteConfig.rfqEmail}`}
-                  className="flex items-center gap-3 font-semibold text-primary hover:text-sky-600"
-                >
-                  <Mail className="h-5 w-5 shrink-0" aria-hidden="true" />
-                  {siteConfig.rfqEmail}
-                </a>
-                <a
                   href={`mailto:${siteConfig.email}`}
                   className="flex items-center gap-3 font-semibold text-primary hover:text-sky-600"
                 >
