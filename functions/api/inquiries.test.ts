@@ -93,13 +93,24 @@ describe('Cloudflare inquiry endpoint', () => {
     expect(await response.json()).toEqual({ error: 'Inquiry delivery failed.' })
   })
 
-  it('returns a safe delivery failure when Resend rejects the email', async () => {
+  it('logs safe provider diagnostics while returning a generic delivery failure', async () => {
+    const logger = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const fetcher = vi.fn(async () =>
       Response.json({ message: 'invalid key details' }, { status: 401 }),
     )
-    const response = await handleInquiryRequest(context(form()), fetcher)
 
-    expect(response.status).toBe(502)
-    expect(await response.json()).toEqual({ error: 'Inquiry delivery failed.' })
+    try {
+      const response = await handleInquiryRequest(context(form()), fetcher)
+
+      expect(response.status).toBe(502)
+      expect(await response.json()).toEqual({ error: 'Inquiry delivery failed.' })
+      expect(logger).toHaveBeenCalledWith('Inquiry delivery failed.', {
+        stage: 'provider',
+        providerStatus: 401,
+        providerMessage: '{"message":"invalid key details"}',
+      })
+    } finally {
+      logger.mockRestore()
+    }
   })
 })

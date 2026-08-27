@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
-  InquiryDeliveryError,
   InquiryValidationError,
   buildInquiryEmail,
   parseInquiryForm,
@@ -101,12 +100,15 @@ describe('Resend delivery adapter', () => {
     )
   })
 
-  it('maps provider rejection to an internal delivery error', async () => {
+  it('preserves safe provider diagnostics on delivery rejection', async () => {
     const fetcher = vi.fn(async () => Response.json({ message: 'invalid key' }, { status: 401 }))
     const payload = await buildInquiryEmail(parseInquiryForm(validForm()), meta, env)
 
-    await expect(sendInquiryEmail(payload, env, fetcher)).rejects.toBeInstanceOf(
-      InquiryDeliveryError,
-    )
+    await expect(sendInquiryEmail(payload, env, fetcher)).rejects.toMatchObject({
+      name: 'InquiryDeliveryError',
+      stage: 'provider',
+      providerStatus: 401,
+      providerMessage: '{"message":"invalid key"}',
+    })
   })
 })

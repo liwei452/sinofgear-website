@@ -72,6 +72,11 @@ export async function handleInquiryRequest(
       return json({ error: 'Invalid inquiry.' }, 400)
     }
     if (error instanceof InquiryDeliveryError) {
+      console.error('Inquiry delivery failed.', {
+        stage: error.stage,
+        providerStatus: error.providerStatus,
+        providerMessage: error.providerMessage,
+      })
       return json({ error: 'Inquiry delivery failed.' }, 502)
     }
     return json({ error: 'Inquiry delivery failed.' }, 502)

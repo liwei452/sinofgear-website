@@ -68,8 +68,14 @@ export class InquiryValidationError extends Error {
   }
 }
 
+export type InquiryDeliveryStage = 'configuration' | 'provider' | 'network'
+
 export class InquiryDeliveryError extends Error {
-  constructor() {
+  constructor(
+    readonly stage: InquiryDeliveryStage,
+    readonly providerStatus?: number,
+    readonly providerMessage = '',
+  ) {
     super('Inquiry delivery failed.')
     this.name = 'InquiryDeliveryError'
   }
@@ -206,7 +212,7 @@ export async function sendInquiryEmail(
   fetcher: InquiryFetcher = fetch,
 ) {
   if (!env.RESEND_API_KEY || !env.INQUIRY_TO_EMAIL || !env.INQUIRY_FROM_EMAIL) {
-    throw new InquiryDeliveryError()
+    throw new InquiryDeliveryError('configuration')
   }
 
   try {
@@ -218,8 +224,15 @@ export async function sendInquiryEmail(
       },
       body: JSON.stringify(payload),
     })
-    if (!response.ok) throw new InquiryDeliveryError()
-  } catch {
-    throw new InquiryDeliveryError()
+    if (!response.ok) {
+      throw new InquiryDeliveryError(
+        'provider',
+        response.status,
+        (await response.text()).slice(0, 500),
+      )
+    }
+  } catch (error) {
+    if (error instanceof InquiryDeliveryError) throw error
+    throw new InquiryDeliveryError('network')
   }
 }
