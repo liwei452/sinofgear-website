@@ -41,7 +41,7 @@ describe('static blog generation', () => {
     expect(llms).toContain('# SINOF')
     expect(llms).toContain('Canonical website: https://sinofgears.com/')
     expect(llms).toContain('[Products](https://sinofgears.com/products)')
-    expect(llms).toContain('Contact: wei.li@sinofgears.com')
+    expect(llms).toContain('Contact: admin@sinofgears.onmicrosoft.com')
     expect(llms).toContain('Co., Ltd.\n\nCanonical website')
   })
 
@@ -55,7 +55,7 @@ describe('static blog generation', () => {
       ['products.html', '/products', 'Custom Gears and Industrial Belts'],
       ['capabilities.html', '/capabilities', 'Technical Review Before Quotation'],
       ['quality.html', '/quality', 'Inspection Planning'],
-      ['contact.html', '/contact', 'Request a Drawing Review'],
+      ['contact.html', '/contact', 'Request a Technical Review and Quote'],
     ] as const
     const titles = new Set<string>()
 

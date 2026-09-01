@@ -4,8 +4,9 @@ export interface InquiryValues {
   name: string
   company: string
   email: string
+  whatsapp: string
   country: string
-  product: ProductSlug | ''
+  product: string
   quantity: string
   material: string
   drawingFile: File | null
@@ -15,11 +16,12 @@ export interface InquiryValues {
 
 export type InquiryErrors = Partial<Record<keyof InquiryValues, string>>
 
-export function createEmptyInquiry(product: ProductSlug | '' = ''): InquiryValues {
+export function createEmptyInquiry(product = ''): InquiryValues {
   return {
     name: '',
     company: '',
     email: '',
+    whatsapp: '',
     country: '',
     product,
     quantity: '',

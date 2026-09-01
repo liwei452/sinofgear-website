@@ -28,7 +28,7 @@ describe('SEO builders', () => {
       name: 'SINOF',
       legalName: 'Changsha Xingfeng Transmission Machinery Co., Ltd.',
       foundingDate: '2008',
-      email: 'wei.li@sinofgears.com',
+      email: 'admin@sinofgears.onmicrosoft.com',
     })
     expect(schema).not.toHaveProperty('telephone')
   })

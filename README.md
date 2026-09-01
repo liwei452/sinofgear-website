@@ -30,7 +30,7 @@ VITE_CUSTOMER_SERVICE_SDK_URL=https://static.t.venorzom.com/loader.js
 VITE_CUSTOMER_SERVICE_SITE_KEY=
 VITE_CUSTOMER_SERVICE_ENDPOINT=https://apigw.t.venorzom.com/
 VITE_CUSTOMER_SERVICE_LOCALE=en
-INQUIRY_TO_EMAIL=wei.li@sinofgears.com
+INQUIRY_TO_EMAIL=admin@sinofgears.onmicrosoft.com
 INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinofgears.com>
 ```
 
@@ -42,7 +42,7 @@ INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinofgears.com>
 - `VITE_CUSTOMER_SERVICE_SITE_KEY`：可公开的站点公钥，不能填写服务端密钥。
 - `VITE_CUSTOMER_SERVICE_ENDPOINT`：自研客服 API Gateway 的 HTTPS 地址。
 - `VITE_CUSTOMER_SERVICE_LOCALE`：客服与 Contact Us 表单语言，当前生产环境使用 `en`。
-- `INQUIRY_TO_EMAIL`：服务端询盘通知收件邮箱，生产值为 `wei.li@sinofgears.com`。
+- `INQUIRY_TO_EMAIL`：服务端询盘通知收件邮箱，生产值为 `admin@sinofgears.onmicrosoft.com`。
 - `INQUIRY_FROM_EMAIL`：Resend 域名验证通过后的发件身份，默认 `Sinoform RFQ <inquiries@sinofgears.com>`。
 - `RESEND_API_KEY`：只在 Cloudflare 中保存为加密 Secret，不写入 `.env`、源码或仓库。
 
@@ -69,7 +69,7 @@ INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinofgears.com>
 
 ## 公司资料与联系邮箱
 
-公司介绍与已确认的厂房、设备、实验室、精度、认证和荣誉资料集中维护在 `src/data/company.ts`。`wei.li@sinofgears.com` 作为公开联系邮箱显示；网站询盘通过同源 `/api/inquiries` 安全接口发送到 `wei.li@sinofgears.com`。
+公司介绍与已确认的厂房、设备、实验室、精度、认证和荣誉资料集中维护在 `src/data/company.ts`。`admin@sinofgears.onmicrosoft.com` 作为公开联系邮箱显示；网站询盘通过同源 `/api/inquiries` 安全接口发送到 `admin@sinofgears.onmicrosoft.com`。
 
 新增公开产品包括橡胶同步带、聚氨酯同步带、输送带、平面传动带和圆带。公开素材不包含 NITTA 名称、标识、规格或文件；原始资料图片保留在项目外部资料包中。
 

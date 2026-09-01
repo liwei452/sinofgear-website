@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { inquiryCopy, inquiryOptions } from '@/data/pages'
+import { inquiryCopy } from '@/data/pages'
 import { localizeProduct, products, type ProductSlug } from '@/data/products'
 import {
   createEmptyInquiry,
@@ -30,9 +30,6 @@ interface InquiryFormProps {
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
 
-const selectClassName =
-  'h-10 w-full rounded-md border border-input bg-white px-3 text-sm shadow-xs outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50'
-
 export default function InquiryForm({
   initialProduct = '',
   submitter = submitInquiry,
@@ -41,9 +38,11 @@ export default function InquiryForm({
   const { lang, text, t } = useLang()
   const customerService = useCustomerService()
   const copy = localizeValue(inquiryCopy, lang)
-  const options = localizeValue(inquiryOptions, lang)
-  const localizedProducts = products.map((product) => localizeProduct(product, lang))
-  const [values, setValues] = useState<InquiryValues>(() => createEmptyInquiry(initialProduct))
+  const initialProductData = products.find(({ slug }) => slug === initialProduct)
+  const initialProductLabel = initialProductData
+    ? localizeProduct(initialProductData, lang).shortName
+    : ''
+  const [values, setValues] = useState<InquiryValues>(() => createEmptyInquiry(initialProductLabel))
   const [errors, setErrors] = useState<InquiryErrors>({})
   const [status, setStatus] = useState<FormStatus>('idle')
   const [result, setResult] = useState<InquiryResult | null>(null)
@@ -64,7 +63,10 @@ export default function InquiryForm({
     setFailureMessage('')
     try {
       const response = await submitter(values)
-      trackInquirySuccess({ product: values.product as ProductSlug, hasDrawing: Boolean(values.drawingFile) })
+      const productCategory = initialProduct && values.product.trim() === initialProductLabel
+        ? initialProduct
+        : 'other'
+      trackInquirySuccess({ product: productCategory, hasDrawing: Boolean(values.drawingFile) })
       void mirrorInquiryToCrm(
         values,
         crmSubmitter ?? customerService.submitContactUs,
@@ -91,7 +93,7 @@ export default function InquiryForm({
   }
 
   const reset = () => {
-    setValues(createEmptyInquiry(initialProduct))
+    setValues(createEmptyInquiry(initialProductLabel))
     setErrors({})
     setStatus('idle')
     setResult(null)
@@ -208,42 +210,48 @@ export default function InquiryForm({
           {fieldError('email')}
         </div>
         <div className="space-y-2">
+          <Label htmlFor="whatsapp">{copy.fields.whatsapp}</Label>
+          <Input
+            id="whatsapp"
+            name="whatsapp"
+            type="tel"
+            inputMode="tel"
+            maxLength={80}
+            autoComplete="tel"
+            value={values.whatsapp}
+            onChange={(event) => setField('whatsapp', event.target.value)}
+            placeholder={copy.placeholders.whatsapp}
+          />
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="country">{copy.fields.country} *</Label>
-          <select
+          <Input
             id="country"
             name="country"
             required
+            maxLength={120}
             autoComplete="country-name"
             value={values.country}
             onChange={(event) => setField('country', event.target.value)}
-            className={selectClassName}
+            placeholder={copy.placeholders.country}
             aria-invalid={Boolean(errors.country)}
             aria-describedby={errors.country ? 'country-error' : undefined}
-          >
-            <option value="">{text('Select a country')}</option>
-            {inquiryOptions.countries.map((country, index) => (
-              <option key={country} value={country}>{options.countries[index]}</option>
-            ))}
-          </select>
+          />
           {fieldError('country')}
         </div>
         <div className="space-y-2">
           <Label htmlFor="product">{copy.fields.product} *</Label>
-          <select
+          <Input
             id="product"
             name="product"
             required
+            maxLength={80}
             value={values.product}
-            onChange={(event) => setField('product', event.target.value as ProductSlug | '')}
-            className={selectClassName}
+            onChange={(event) => setField('product', event.target.value)}
+            placeholder={copy.placeholders.product}
             aria-invalid={Boolean(errors.product)}
             aria-describedby={errors.product ? 'product-error' : undefined}
-          >
-            <option value="">{text('Select a product')}</option>
-            {localizedProducts.map((product) => (
-              <option key={product.slug} value={product.slug}>{product.shortName}</option>
-            ))}
-          </select>
+          />
           {fieldError('product')}
         </div>
         <div className="space-y-2">
@@ -258,18 +266,14 @@ export default function InquiryForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="material">{copy.fields.material}</Label>
-          <select
+          <Input
             id="material"
             name="material"
+            maxLength={120}
             value={values.material}
             onChange={(event) => setField('material', event.target.value)}
-            className={selectClassName}
-          >
-            <option value="">{copy.placeholders.material}</option>
-            {inquiryOptions.materials.map((material, index) => (
-              <option key={material} value={material}>{options.materials[index]}</option>
-            ))}
-          </select>
+            placeholder={copy.placeholders.material}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="drawing">{copy.fields.drawing}</Label>

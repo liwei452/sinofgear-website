@@ -6,6 +6,7 @@ const inquiry: InquiryValues = {
   name: 'Alex Morgan',
   company: 'Northstar Motion',
   email: '  buyer@example.com  ',
+  whatsapp: '+49 123 456789',
   country: 'Germany',
   product: 'spur-gears',
   quantity: '500 pcs',
@@ -24,7 +25,7 @@ describe('CRM inquiry mirror', () => {
     expect(JSON.stringify(fields)).not.toContain('Please review')
   })
 
-  it('submits the email with the current page URL', async () => {
+  it('submits the email and engineering drawing with the current page URL', async () => {
     const submitContactUs = vi.fn().mockResolvedValue({ accepted: true, created: true })
 
     await expect(mirrorInquiryToCrm(inquiry, submitContactUs, {
@@ -33,7 +34,25 @@ describe('CRM inquiry mirror', () => {
 
     expect(submitContactUs).toHaveBeenCalledWith(
       { business_email: ['buyer@example.com'] },
-      { pageURL: 'https://sinofgears.com/contact?product=spur-gears' },
+      {
+        pageURL: 'https://sinofgears.com/contact?product=spur-gears',
+        attachments: { files: [inquiry.drawingFile] },
+      },
+    )
+  })
+
+  it('does not send an empty attachment collection when no drawing was supplied', async () => {
+    const submitContactUs = vi.fn().mockResolvedValue({ accepted: true, created: true })
+
+    await mirrorInquiryToCrm(
+      { ...inquiry, drawingFile: null },
+      submitContactUs,
+      { pageURL: 'https://sinofgears.com/contact' },
+    )
+
+    expect(submitContactUs).toHaveBeenCalledWith(
+      { business_email: ['buyer@example.com'] },
+      { pageURL: 'https://sinofgears.com/contact' },
     )
   })
 

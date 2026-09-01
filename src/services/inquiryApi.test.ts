@@ -6,10 +6,11 @@ const inquiry: InquiryValues = {
   name: 'Alex Morgan',
   company: 'Northstar Motion',
   email: 'alex@example.com',
-  country: 'Germany',
-  product: 'spur-gears',
+  whatsapp: '+49 123 456789',
+  country: 'Réunion',
+  product: 'Custom ring gear for kiln drive',
   quantity: '500 pcs',
-  material: 'Alloy steel',
+  material: '42CrMo4 per EN 10083',
   drawingFile: null,
   website: '',
   message: 'Please review this gear.',
@@ -39,7 +40,11 @@ describe('production inquiry service', () => {
     expect(requestedInit?.method).toBe('POST')
     const body = requestedInit?.body as FormData
     expect(body.get('email')).toBe('alex@example.com')
+    expect(body.get('whatsapp')).toBe('+49 123 456789')
     expect(body.get('company')).toBe('Northstar Motion')
+    expect(body.get('country')).toBe('Réunion')
+    expect(body.get('product')).toBe('Custom ring gear for kiln drive')
+    expect(body.get('material')).toBe('42CrMo4 per EN 10083')
     expect(body.get('website')).toBe('')
     expect(body.get('sourceUrl')).toContain('http://localhost')
     expect((body.get('drawing') as File).name).toBe('gear.step')

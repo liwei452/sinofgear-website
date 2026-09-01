@@ -6,7 +6,7 @@ export interface AnalyticsConfig {
 }
 
 export interface InquiryAnalyticsData {
-  product: ProductSlug
+  product: ProductSlug | 'other'
   hasDrawing: boolean
 }
 

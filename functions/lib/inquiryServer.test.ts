@@ -10,7 +10,7 @@ import {
 
 const env: InquiryEnv = {
   RESEND_API_KEY: 're_test_key',
-  INQUIRY_TO_EMAIL: '452900431@qq.com',
+  INQUIRY_TO_EMAIL: 'admin@sinofgears.onmicrosoft.com',
   INQUIRY_FROM_EMAIL: 'Sinoform RFQ <inquiries@sinfogear.com>',
 }
 
@@ -26,8 +26,9 @@ function validForm(overrides: Record<string, string | File> = {}) {
     name: 'Alex Morgan',
     company: 'Northstar Motion',
     email: 'alex@example.com',
+    whatsapp: '+49 123 456789',
     country: 'Germany',
-    product: 'spur-gears',
+    product: 'Custom ring gear for kiln drive',
     quantity: '500 pcs',
     material: 'Alloy steel',
     message: 'Please review this gear.',
@@ -67,8 +68,10 @@ describe('inquiry email composition', () => {
     const parsed = parseInquiryForm(validForm({ message: '<script>alert(1)</script>' }))
     const email = await buildInquiryEmail(parsed, meta, env)
 
-    expect(email.to).toEqual(['452900431@qq.com'])
+    expect(email.to).toEqual(['admin@sinofgears.onmicrosoft.com'])
     expect(email.reply_to).toBe('alex@example.com')
+    expect(email.html).toContain('+49 123 456789')
+    expect(email.html).toContain('Custom ring gear for kiln drive')
     expect(email.html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
     expect(email.html).not.toContain('<script>')
     expect(email.subject).toContain('SF-TEST123')

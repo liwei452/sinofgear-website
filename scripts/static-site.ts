@@ -72,10 +72,10 @@ const corePages = [
   },
   {
     pathname: '/contact',
-    title: 'Request a Custom Gear Drawing Review | SINOF',
-    description: 'Send SINOF your gear drawing, quantity, material, accuracy, application, and delivery requirements for a structured RFQ review.',
-    heading: 'Request a Drawing Review',
-    intro: 'A complete technical package helps us identify open questions and prepare a clearer quotation.',
+    title: 'Request a Technical Review and Quote | SINOF',
+    description: 'Share component, quantity, material, application, inspection, and drawing requirements with SINOF for technical review before quotation.',
+    heading: 'Request a Technical Review and Quote',
+    intro: 'Upload a drawing when available, and our engineering team will review the details before quotation.',
     image: '/assets/factory-exterior.webp',
   },
 ] as const

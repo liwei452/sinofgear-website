@@ -38,6 +38,7 @@ export interface ParsedInquiry {
   name: string
   company: string
   email: string
+  whatsapp: string
   country: string
   product: string
   quantity: string
@@ -114,10 +115,12 @@ export function parseInquiryForm(form: FormData): ParsedInquiry {
   }
 
   const website = readString(form, 'website', 500)
+  const whatsapp = form.has('whatsapp') ? readString(form, 'whatsapp', 80) : ''
   return {
     name: readString(form, 'name', 120, true),
     company: readString(form, 'company', 160, true),
     email,
+    whatsapp,
     country: readString(form, 'country', 120, true),
     product: readString(form, 'product', 80, true),
     quantity: readString(form, 'quantity', 120),
@@ -176,6 +179,7 @@ export async function buildInquiryEmail(
     ['Name', inquiry.name],
     ['Company', inquiry.company],
     ['Email', inquiry.email],
+    ['WhatsApp', inquiry.whatsapp],
     ['Country', inquiry.country],
     ['Cloudflare country', meta.edgeCountry],
     ['Product', inquiry.product],

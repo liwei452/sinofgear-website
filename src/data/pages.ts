@@ -60,9 +60,9 @@ export const pages = {
   },
   contact: {
     eyebrow: 'Request for quotation',
-    title: 'Tell Us About Your Gear Project',
+    title: 'Request a Technical Review and Quote',
     subtitle:
-      'Share the product type, quantity, material preference, drawing context, and application requirements for technical review.',
+      'Share the component, quantity, material, application, and inspection requirements. Upload a drawing when available, and our engineering team will review the details before quotation.',
     seo: {
       title: 'Request a Custom Gear Quote | SINOF',
       description:
@@ -96,6 +96,7 @@ export const inquiryCopy = {
     name: 'Name',
     company: 'Company',
     email: 'Email',
+    whatsapp: 'WhatsApp (optional)',
     country: 'Country',
     product: 'Product',
     quantity: 'Quantity',
@@ -107,12 +108,15 @@ export const inquiryCopy = {
     name: 'Your full name',
     company: 'Company name',
     email: 'you@company.com',
+    whatsapp: 'Example: +49 123 456789',
+    country: 'Country or region',
+    product: 'Product type or part description',
     quantity: 'Example: 500 pcs per batch',
-    material: 'Select or describe a material',
+    material: 'Grade, standard, or material preference',
     message: 'Describe the application, tooth data, tolerances, heat treatment, inspection, and any open questions.',
   },
   drawingNote:
-    'Optional drawing: PDF, STEP/STP, IGES/IGS, DXF, or DWG; maximum 15 MB. Files are delivered to the designated business inbox; the website does not create a document repository, and uploaded drawings are not sent to the CRM. Your business email is copied to Venorzom CRM only for inquiry follow-up. Inquiry records are kept only as long as needed for follow-up or legal recordkeeping; request deletion at wei.li@sinofgears.com. Ask us to arrange an NDA before sending confidential drawings.',
+    'Optional drawing: PDF, STEP/STP, IGES/IGS, DXF, or DWG; maximum 15 MB. Your inquiry and uploaded files are delivered to our business inbox and CRM for technical review and follow-up. Records are retained only as needed for quotation, follow-up, or legal recordkeeping. Contact admin@sinofgears.onmicrosoft.com to request deletion. Please ask us to arrange an NDA before sending confidential drawings.',
   submit: 'Submit Inquiry',
   submitting: 'Submitting…',
   successTitle: 'Inquiry received',

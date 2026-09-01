@@ -18,9 +18,15 @@ export async function mirrorInquiryToCrm(
   options: MirrorOptions,
 ): Promise<boolean> {
   try {
+    const submitOptions = values.drawingFile
+      ? {
+          pageURL: options.pageURL,
+          attachments: { files: [values.drawingFile] },
+        }
+      : { pageURL: options.pageURL }
     const result = await submitContactUs(
       mapInquiryToContactUs(values),
-      { pageURL: options.pageURL },
+      submitOptions,
     )
     return result?.accepted === true
   } catch (error) {

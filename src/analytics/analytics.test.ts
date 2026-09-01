@@ -30,4 +30,16 @@ describe('privacy-conscious analytics', () => {
     expect(window.dataLayer).toContainEqual({ event: 'generate_lead', product_category: 'worm-gears', has_drawing: true })
     expect(JSON.stringify(window.dataLayer)).not.toMatch(/email|name|company|message/i)
   })
+
+  it('uses a fixed category for buyer-written product descriptions', () => {
+    const config = { gtmContainerId: 'GTM-TEST123' }
+    trackInquirySuccess({ product: 'other', hasDrawing: false }, config)
+
+    expect(window.dataLayer).toContainEqual({
+      event: 'generate_lead',
+      product_category: 'other',
+      has_drawing: false,
+    })
+    expect(JSON.stringify(window.dataLayer)).not.toContain('Custom ring gear for kiln drive')
+  })
 })

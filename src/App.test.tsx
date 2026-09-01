@@ -20,7 +20,7 @@ describe('public routes', () => {
     ['/products', 'Explore Custom Gear Categories'],
     ['/capabilities', 'A Drawing-Led Manufacturing Review'],
     ['/quality', 'Define Acceptance Criteria Before Production'],
-    ['/contact', 'Tell Us About Your Gear Project'],
+    ['/contact', 'Request a Technical Review and Quote'],
     ['/blog', 'Gear Sourcing Insights'],
     ['/blog/spur-gear-vs-helical-gear', 'Spur Gear vs Helical Gear: How to Choose'],
     ['/products/spur-gears', 'Custom Spur Gears'],

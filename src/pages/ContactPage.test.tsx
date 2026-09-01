@@ -11,7 +11,9 @@ async function completeRequiredFields() {
   await user.type(screen.getByLabelText(/name/i), 'Alex Morgan')
   await user.type(screen.getByLabelText(/company/i), 'Northstar Motion')
   await user.type(screen.getByLabelText(/email/i), 'alex@example.com')
-  await user.selectOptions(screen.getByLabelText(/country/i), 'Germany')
+  await user.type(screen.getByLabelText(/country/i), 'Germany')
+  const product = screen.getByLabelText(/product/i) as HTMLInputElement
+  if (!product.value) await user.type(product, 'Custom spur gear')
   await user.type(screen.getByLabelText(/message/i), 'Please review this gear for our packaging line.')
   return user
 }
@@ -24,8 +26,8 @@ describe('contact page inquiry flow', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('link', { name: 'wei.li@sinofgears.com' }))
-      .toHaveAttribute('href', 'mailto:wei.li@sinofgears.com')
+    expect(screen.getByRole('link', { name: 'admin@sinofgears.onmicrosoft.com' }))
+      .toHaveAttribute('href', 'mailto:admin@sinofgears.onmicrosoft.com')
     expect(document.body).not.toHaveTextContent('inquiries@sinfogear.com')
   })
 
@@ -44,9 +46,15 @@ describe('contact page inquiry flow', () => {
     for (const name of ['name', 'company', 'email', 'country', 'product', 'message']) {
       expect(form.querySelector(`[name="${name}"]`)).toBeRequired()
     }
-    for (const name of ['quantity', 'material', 'drawing', 'website']) {
+    for (const name of ['whatsapp', 'quantity', 'material', 'drawing', 'website']) {
       expect(form.querySelector(`[name="${name}"]`)).toBeInTheDocument()
     }
+
+    expect(screen.getByLabelText(/country/i)).toHaveAttribute('maxlength', '120')
+    expect(screen.getByLabelText(/product/i)).toHaveAttribute('maxlength', '80')
+    expect(screen.getByLabelText(/material/i)).toHaveAttribute('maxlength', '120')
+    expect(screen.getByLabelText(/whatsapp/i)).toHaveAttribute('type', 'tel')
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   })
 
   it('explains drawing delivery, repository handling, and NDA availability', () => {
@@ -56,10 +64,9 @@ describe('contact page inquiry flow', () => {
       </MemoryRouter>,
     )
 
-    expect(document.body).toHaveTextContent(/does not create a document repository/i)
-    expect(document.body).toHaveTextContent(/uploaded drawings are not sent to the CRM/i)
-    expect(document.body).toHaveTextContent(/business email is copied to Venorzom CRM/i)
-    expect(document.body).toHaveTextContent(/request deletion at wei.li@sinofgears.com/i)
+    expect(document.body).toHaveTextContent(/uploaded files are delivered to our business inbox and CRM/i)
+    expect(document.body).toHaveTextContent(/retained only as needed for quotation/i)
+    expect(document.body).toHaveTextContent(/contact admin@sinofgears.onmicrosoft.com to request deletion/i)
     expect(document.body).toHaveTextContent(/NDA/i)
   })
 
@@ -74,7 +81,7 @@ describe('contact page inquiry flow', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByLabelText(/product/i)).toHaveValue('helical-gears')
+    expect(screen.getByLabelText(/product/i)).toHaveValue('Helical Gears')
     const user = await completeRequiredFields()
     await user.click(screen.getByRole('button', { name: /submit inquiry/i }))
 
@@ -151,9 +158,39 @@ describe('contact page inquiry flow', () => {
     )
     await waitFor(() => expect(crmSubmitter).toHaveBeenCalledWith(
       { business_email: ['alex@example.com'] },
-      { pageURL: window.location.href },
+      {
+        pageURL: window.location.href,
+        attachments: { files: [drawing] },
+      },
     ))
-    expect(JSON.stringify(crmSubmitter.mock.calls)).not.toContain('gear.step')
+  })
+
+  it('accepts buyer-written sourcing details and an optional WhatsApp number', async () => {
+    const submitter = vi.fn(async () => ({
+      reference: 'SF-FREETEXT1',
+      receivedAt: '2026-08-05T00:00:00.000Z',
+    }))
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <ContactPage submitter={submitter} />
+      </MemoryRouter>,
+    )
+
+    const user = await completeRequiredFields()
+    await user.clear(screen.getByLabelText(/country/i))
+    await user.type(screen.getByLabelText(/country/i), 'Réunion')
+    await user.clear(screen.getByLabelText(/product/i))
+    await user.type(screen.getByLabelText(/product/i), 'Custom ring gear for kiln drive')
+    await user.type(screen.getByLabelText(/material/i), '42CrMo4 per EN 10083')
+    await user.type(screen.getByLabelText(/whatsapp/i), '+49 123 456789')
+    await user.click(screen.getByRole('button', { name: /submit inquiry/i }))
+
+    expect(submitter).toHaveBeenCalledWith(expect.objectContaining({
+      country: 'Réunion',
+      product: 'Custom ring gear for kiln drive',
+      material: '42CrMo4 per EN 10083',
+      whatsapp: '+49 123 456789',
+    }))
   })
 
   it('blocks an unsupported drawing before calling the submitter', async () => {
@@ -186,7 +223,7 @@ describe('contact page inquiry flow', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { level: 1, name: '歯車プロジェクトについてお聞かせください' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: '技術レビューと見積りを依頼' })).toBeInTheDocument()
     expect(screen.getByLabelText(/メールアドレス/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'お問い合わせを送信' })).toBeInTheDocument()
   })

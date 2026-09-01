@@ -34,6 +34,7 @@ export async function submitInquiry(
   body.set('name', values.name)
   body.set('company', values.company)
   body.set('email', values.email)
+  body.set('whatsapp', values.whatsapp)
   body.set('country', values.country)
   body.set('product', values.product)
   body.set('quantity', values.quantity)
