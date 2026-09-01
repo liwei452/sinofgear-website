@@ -18,7 +18,6 @@ export function buildOrganizationSchema(baseUrl: string): JsonLdRecord {
     legalName: siteConfig.legalName,
     foundingDate: siteConfig.founded,
     email: siteConfig.email,
-    telephone: siteConfig.phone,
     address: {
       '@type': 'PostalAddress',
       streetAddress: siteConfig.address,

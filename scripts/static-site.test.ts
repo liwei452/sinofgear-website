@@ -68,6 +68,9 @@ describe('static blog generation', () => {
       expect(html).toContain(`<h1>${heading}</h1>`)
       expect(html).toContain('data-prerendered')
       expect(html).toContain('"@type":"Organization"')
+      expect(html).not.toContain('"telephone":')
+      expect(html).not.toContain('tel:')
+      expect(html).not.toMatch(/\+86 (?:159 7312 7000|731 (?:8888 4918|8686 7700))/)
       expect(html.match(/id="sinoform-route-schema"/g)).toHaveLength(1)
     }
 

@@ -68,8 +68,6 @@ export default function Footer() {
             <div className="mt-5 space-y-3 text-sm">
               <p className="font-semibold">{lang === 'zh' ? siteConfig.businessContactZh : siteConfig.businessContact}</p>
               <a href={`mailto:${siteConfig.email}`} className="block break-all text-primary hover:underline">{siteConfig.email}</a>
-              <a href={`tel:${siteConfig.mobile.replace(/\s/g, '')}`} className="block text-muted-foreground hover:text-primary">{siteConfig.mobile}</a>
-              <a href={`tel:${siteConfig.phone.replace(/\s/g, '')}`} className="block text-muted-foreground hover:text-primary">{siteConfig.phone}</a>
             </div>
           </div>
         </div>

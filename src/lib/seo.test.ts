@@ -20,15 +20,17 @@ describe('SEO builders', () => {
     expect(buildCanonicalUrl('https://sinfogear.com/', '/')).toBe('https://sinfogear.com/')
   })
 
-  it('includes approved legal contact facts in Organization data', () => {
-    expect(buildOrganizationSchema('https://sinfogear.com')).toMatchObject({
+  it('includes email contact facts without publishing a telephone in Organization data', () => {
+    const schema = buildOrganizationSchema('https://sinfogear.com')
+
+    expect(schema).toMatchObject({
       '@type': 'Organization',
       name: 'SINOF',
       legalName: 'Changsha Xingfeng Transmission Machinery Co., Ltd.',
       foundingDate: '2008',
       email: 'wei.li@sinofgears.com',
-      telephone: '+86 731 8888 4918',
     })
+    expect(schema).not.toHaveProperty('telephone')
   })
 
   it('does not invent product commercial data', () => {

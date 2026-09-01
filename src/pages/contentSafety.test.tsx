@@ -31,7 +31,7 @@ describe('verified public content', () => {
     expect(document.querySelector(`img[src="${imagePath}"]`)).toBeInTheDocument()
   })
 
-  it('publishes consistent RFQ and business contact details', () => {
+  it('publishes email contact details without a visible or clickable phone number', () => {
     render(
       <MemoryRouter initialEntries={['/contact']}>
         <App />
@@ -41,7 +41,10 @@ describe('verified public content', () => {
     expect(document.body).not.toHaveTextContent('inquiries@sinfogear.com')
     expect(document.body).toHaveTextContent('wei.li@sinofgears.com')
     expect(document.body).toHaveTextContent('Chen Shouyu')
-    expect(document.body).toHaveTextContent('+86 159 7312 7000')
+    expect(document.body).not.toHaveTextContent('+86 159 7312 7000')
+    expect(document.body).not.toHaveTextContent('+86 731 8888 4918')
+    expect(document.body).not.toHaveTextContent('+86 731 8686 7700')
+    expect(document.querySelector('a[href^="tel:"]')).not.toBeInTheDocument()
   })
 
   it('does not publish excluded third-party branding in product data', () => {
