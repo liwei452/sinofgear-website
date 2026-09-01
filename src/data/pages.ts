@@ -112,7 +112,7 @@ export const inquiryCopy = {
     message: 'Describe the application, tooth data, tolerances, heat treatment, inspection, and any open questions.',
   },
   drawingNote:
-    'Optional drawing: PDF, STEP/STP, IGES/IGS, DXF, or DWG; maximum 15 MB. Files are delivered to the designated business inbox; the website does not create a document repository. Email and provider retention follow the recipient mailbox policy. Ask us to arrange an NDA before sending confidential drawings.',
+    'Optional drawing: PDF, STEP/STP, IGES/IGS, DXF, or DWG; maximum 15 MB. Files are delivered to the designated business inbox; the website does not create a document repository, and uploaded drawings are not sent to the CRM. Your business email is copied to Venorzom CRM only for inquiry follow-up. Inquiry records are kept only as long as needed for follow-up or legal recordkeeping; request deletion at wei.li@sinofgears.com. Ask us to arrange an NDA before sending confidential drawings.',
   submit: 'Submit Inquiry',
   submitting: 'Submitting…',
   successTitle: 'Inquiry received',

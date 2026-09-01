@@ -9,13 +9,15 @@ describe('customer-service configuration', () => {
   it('accepts complete public HTTPS configuration', () => {
     expect(readCustomerServiceConfig({
       VITE_CUSTOMER_SERVICE_ENABLED: 'true',
-      VITE_CUSTOMER_SERVICE_SDK_URL: 'https://cdn.example.com/sdk.js',
-      VITE_CUSTOMER_SERVICE_APP_ID: 'public-app-id',
-      VITE_CUSTOMER_SERVICE_GLOBAL: 'SinoformSupport',
+      VITE_CUSTOMER_SERVICE_SDK_URL: 'https://static.t.venorzom.com/loader.js',
+      VITE_CUSTOMER_SERVICE_SITE_KEY: 'pk_live_1234567890abcdef1234567890abcdef',
+      VITE_CUSTOMER_SERVICE_ENDPOINT: 'https://apigw.t.venorzom.com/',
+      VITE_CUSTOMER_SERVICE_LOCALE: 'en',
     })).toEqual({
-      sdkUrl: 'https://cdn.example.com/sdk.js',
-      appId: 'public-app-id',
-      globalName: 'SinoformSupport',
+      sdkUrl: 'https://static.t.venorzom.com/loader.js',
+      siteKey: 'pk_live_1234567890abcdef1234567890abcdef',
+      endpoint: 'https://apigw.t.venorzom.com/',
+      locale: 'en',
     })
   })
 
@@ -23,12 +25,35 @@ describe('customer-service configuration', () => {
     expect(readCustomerServiceConfig({
       VITE_CUSTOMER_SERVICE_ENABLED: 'true',
       VITE_CUSTOMER_SERVICE_SDK_URL: 'http://cdn.example.com/sdk.js',
-      VITE_CUSTOMER_SERVICE_APP_ID: 'public-app-id',
-      VITE_CUSTOMER_SERVICE_GLOBAL: 'Support',
+      VITE_CUSTOMER_SERVICE_SITE_KEY: 'pk_live_1234567890abcdef1234567890abcdef',
+      VITE_CUSTOMER_SERVICE_ENDPOINT: 'https://apigw.t.venorzom.com/',
     })).toBeNull()
     expect(readCustomerServiceConfig({
       VITE_CUSTOMER_SERVICE_ENABLED: 'true',
       VITE_CUSTOMER_SERVICE_SDK_URL: 'https://cdn.example.com/sdk.js',
+      VITE_CUSTOMER_SERVICE_SITE_KEY: 'pk_live_1234567890abcdef1234567890abcdef',
+    })).toBeNull()
+  })
+
+  it('rejects untrusted origins and malformed public site keys', () => {
+    const base = {
+      VITE_CUSTOMER_SERVICE_ENABLED: 'true',
+      VITE_CUSTOMER_SERVICE_SDK_URL: 'https://static.t.venorzom.com/loader.js',
+      VITE_CUSTOMER_SERVICE_SITE_KEY: 'pk_live_1234567890abcdef1234567890abcdef',
+      VITE_CUSTOMER_SERVICE_ENDPOINT: 'https://apigw.t.venorzom.com/',
+    }
+
+    expect(readCustomerServiceConfig({
+      ...base,
+      VITE_CUSTOMER_SERVICE_SDK_URL: 'https://attacker.example/loader.js',
+    })).toBeNull()
+    expect(readCustomerServiceConfig({
+      ...base,
+      VITE_CUSTOMER_SERVICE_ENDPOINT: 'https://attacker.example/',
+    })).toBeNull()
+    expect(readCustomerServiceConfig({
+      ...base,
+      VITE_CUSTOMER_SERVICE_SITE_KEY: 'pk_live_short',
     })).toBeNull()
   })
 })

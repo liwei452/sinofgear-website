@@ -8,8 +8,14 @@ import { siteConfig } from '@/data/site'
 import { parseProductPrefill } from '@/lib/inquiry'
 import { useLang } from '@/i18n/LanguageContext'
 import { localizeValue } from '@/i18n/messages'
+import type { ContactUsSubmitter } from '@/customerService/types'
 
-export default function ContactPage({ submitter }: { submitter?: InquirySubmitter }) {
+interface ContactPageProps {
+  submitter?: InquirySubmitter
+  crmSubmitter?: ContactUsSubmitter
+}
+
+export default function ContactPage({ submitter, crmSubmitter }: ContactPageProps) {
   const location = useLocation()
   const { lang, text } = useLang()
   const page = localizeValue(pages.contact, lang)
@@ -92,7 +98,11 @@ export default function ContactPage({ submitter }: { submitter?: InquirySubmitte
               </div>
             </div>
           </aside>
-          <InquiryForm initialProduct={initialProduct} submitter={submitter} />
+          <InquiryForm
+            initialProduct={initialProduct}
+            submitter={submitter}
+            crmSubmitter={crmSubmitter}
+          />
         </div>
       </section>
     </>

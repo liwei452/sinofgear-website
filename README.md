@@ -26,23 +26,32 @@ VITE_SITE_URL=https://sinofgears.com
 VITE_VISITOR_COUNTRY_CODE=
 VITE_GEO_API_URL=
 VITE_CUSTOMER_SERVICE_ENABLED=false
-VITE_CUSTOMER_SERVICE_SDK_URL=
-VITE_CUSTOMER_SERVICE_APP_ID=
-VITE_CUSTOMER_SERVICE_GLOBAL=
+VITE_CUSTOMER_SERVICE_SDK_URL=https://static.t.venorzom.com/loader.js
+VITE_CUSTOMER_SERVICE_SITE_KEY=
+VITE_CUSTOMER_SERVICE_ENDPOINT=https://apigw.t.venorzom.com/
+VITE_CUSTOMER_SERVICE_LOCALE=en
 INQUIRY_TO_EMAIL=wei.li@sinofgears.com
-INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinfogear.com>
+INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinofgears.com>
 ```
 
 - `VITE_SITE_URL`：Canonical、Open Graph 和结构化数据使用的正式域名。
 - `VITE_VISITOR_COUNTRY_CODE`：可选，用于测试或由托管平台注入两位国家代码。
 - `VITE_GEO_API_URL`：可选的同源 JSON 国家识别接口；未设置时默认读取 Cloudflare `/cdn-cgi/trace`。
-- `VITE_CUSTOMER_SERVICE_ENABLED`：自研客服 SDK 总开关，默认 `false`。
-- `VITE_CUSTOMER_SERVICE_SDK_URL`：客服 SDK 的 HTTPS 脚本地址。
-- `VITE_CUSTOMER_SERVICE_APP_ID`：可公开的应用 ID，不能填写服务端密钥。
-- `VITE_CUSTOMER_SERVICE_GLOBAL`：SDK 在 `window` 上暴露的全局对象名称。
+- `VITE_CUSTOMER_SERVICE_ENABLED`：自研客服 SDK 总开关。
+- `VITE_CUSTOMER_SERVICE_SDK_URL`：客服 SDK 的 HTTPS ESM loader 地址。
+- `VITE_CUSTOMER_SERVICE_SITE_KEY`：可公开的站点公钥，不能填写服务端密钥。
+- `VITE_CUSTOMER_SERVICE_ENDPOINT`：自研客服 API Gateway 的 HTTPS 地址。
+- `VITE_CUSTOMER_SERVICE_LOCALE`：客服与 Contact Us 表单语言，当前生产环境使用 `en`。
 - `INQUIRY_TO_EMAIL`：服务端询盘通知收件邮箱，生产值为 `wei.li@sinofgears.com`。
-- `INQUIRY_FROM_EMAIL`：Resend 域名验证通过后的发件身份，默认 `Sinoform RFQ <inquiries@sinfogear.com>`。
+- `INQUIRY_FROM_EMAIL`：Resend 域名验证通过后的发件身份，默认 `Sinoform RFQ <inquiries@sinofgears.com>`。
 - `RESEND_API_KEY`：只在 Cloudflare 中保存为加密 Secret，不写入 `.env`、源码或仓库。
+
+### CRM 与询盘链路
+
+- 生产站只在访客点击询盘助手或提交询盘后加载 Venorzom Web Embed；`agent_chat` 与无头 Contact Us 共用同一实例，普通浏览不会提前创建 CRM 会话。
+- `/api/inquiries` 仍是询盘、图纸和邮件通知的主链路；CRM 暂作为邮件成功后的 best-effort 镜像，不会因 CRM 故障让客户重复提交。
+- 当前线上 Contact Us schema 仅发布了 `business_email`，因此网站只同步邮箱。姓名、公司、产品、留言和图纸须在 CRM 后台发布对应字段与附件规则后再接入，禁止猜测字段 key 或把文件写入文本字段。
+- 远程 ESM loader 目前限制为已审核的 Venorzom 域名；在供应商提供版本化资源前，后续仍应升级为固定版本或自托管并校验文件哈希。
 
 自定义 IP 接口可以返回 `{ "countryCode": "DE" }`、`{ "country": "DE" }` 或 `{ "country_code": "DE" }`。默认 Cloudflare 接口读取 `loc=DE`。网络错误、超时、无效或未映射国家均不会阻塞页面。
 

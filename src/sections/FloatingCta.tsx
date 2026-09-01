@@ -1,11 +1,13 @@
 ﻿import { FileUp } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
+import { useCustomerService } from '@/customerService/CustomerServiceContext'
 import { useLang } from '@/i18n/LanguageContext'
 
 export default function FloatingCta() {
   const { pathname } = useLocation()
+  const { status: customerServiceStatus } = useCustomerService()
   const { text } = useLang()
-  if (pathname === '/contact') return null
+  if (pathname === '/contact' || customerServiceStatus === 'ready') return null
 
   return (
     <Link

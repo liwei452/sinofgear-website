@@ -2,9 +2,33 @@ import type { Lang } from '@/i18n/language'
 
 export interface CustomerServiceConfig {
   sdkUrl: string
-  appId: string
-  globalName: string
+  siteKey: string
+  endpoint: string
+  locale: string
 }
+
+export type CustomerServiceComponent = 'agent_chat' | 'contact_us'
+
+export interface ContactUsSubmitOptions {
+  pageURL?: string
+  submissionID?: string
+  attachments?: {
+    files: Iterable<File>
+    onProgress?: (attachmentID: string, sent: number, total: number) => void
+  }
+}
+
+export interface ContactUsSubmissionResult {
+  accepted: true
+  created: boolean
+}
+
+export type ContactUsFields = Record<string, string[]>
+
+export type ContactUsSubmitter = (
+  fields: ContactUsFields,
+  options?: ContactUsSubmitOptions,
+) => Promise<ContactUsSubmissionResult | null>
 
 export interface CustomerServiceCampaign {
   source?: string
@@ -24,17 +48,12 @@ export interface CustomerServiceContext {
   campaign?: CustomerServiceCampaign
 }
 
-export interface CustomerServiceVisitor {
-  id: string
-  displayName?: string
-  company?: string
-}
-
 export interface CustomerServiceAdapter {
-  init(config: CustomerServiceConfig, context: CustomerServiceContext): Promise<void>
+  init(config: CustomerServiceConfig): Promise<void>
   open(): void
-  close(): void
-  identify(visitor: CustomerServiceVisitor): void
-  setContext(context: CustomerServiceContext): void
+  submitContactUs(
+    fields: ContactUsFields,
+    options?: ContactUsSubmitOptions,
+  ): Promise<ContactUsSubmissionResult>
   destroy(): void
 }

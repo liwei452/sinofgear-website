@@ -16,12 +16,16 @@ import { submitInquiry, type InquiryResult } from '@/services/inquiryApi'
 import { useLang } from '@/i18n/LanguageContext'
 import { localizeValue } from '@/i18n/messages'
 import { trackInquirySuccess } from '@/analytics/analytics'
+import { useCustomerService } from '@/customerService/CustomerServiceContext'
+import type { ContactUsSubmitter } from '@/customerService/types'
+import { mirrorInquiryToCrm } from '@/services/crmInquiryMirror'
 
 export type InquirySubmitter = (values: InquiryValues) => Promise<InquiryResult>
 
 interface InquiryFormProps {
   initialProduct?: ProductSlug | ''
   submitter?: InquirySubmitter
+  crmSubmitter?: ContactUsSubmitter
 }
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
@@ -32,8 +36,10 @@ const selectClassName =
 export default function InquiryForm({
   initialProduct = '',
   submitter = submitInquiry,
+  crmSubmitter,
 }: InquiryFormProps) {
   const { lang, text, t } = useLang()
+  const customerService = useCustomerService()
   const copy = localizeValue(inquiryCopy, lang)
   const options = localizeValue(inquiryOptions, lang)
   const localizedProducts = products.map((product) => localizeProduct(product, lang))
@@ -59,6 +65,11 @@ export default function InquiryForm({
     try {
       const response = await submitter(values)
       trackInquirySuccess({ product: values.product as ProductSlug, hasDrawing: Boolean(values.drawingFile) })
+      void mirrorInquiryToCrm(
+        values,
+        crmSubmitter ?? customerService.submitContactUs,
+        { pageURL: window.location.href },
+      )
       setResult(response)
       setStatus('success')
     } catch (error) {
@@ -115,6 +126,7 @@ export default function InquiryForm({
 
   return (
     <form
+      id="contact-us-form"
       aria-label="Request a custom gear quote"
       method="post"
       action="/api/inquiries"

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
@@ -57,6 +57,9 @@ describe('contact page inquiry flow', () => {
     )
 
     expect(document.body).toHaveTextContent(/does not create a document repository/i)
+    expect(document.body).toHaveTextContent(/uploaded drawings are not sent to the CRM/i)
+    expect(document.body).toHaveTextContent(/business email is copied to Venorzom CRM/i)
+    expect(document.body).toHaveTextContent(/request deletion at wei.li@sinofgears.com/i)
     expect(document.body).toHaveTextContent(/NDA/i)
   })
 
@@ -80,12 +83,14 @@ describe('contact page inquiry flow', () => {
   })
 
   it('shows a retry action when the production service fails', async () => {
+    const crmSubmitter = vi.fn().mockResolvedValue({ accepted: true, created: true })
     render(
       <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
         <ContactPage
           submitter={async () => {
             throw new Error('We could not submit your inquiry. Please try again.')
           }}
+          crmSubmitter={crmSubmitter}
         />
       </MemoryRouter>,
     )
@@ -97,6 +102,29 @@ describe('contact page inquiry flow', () => {
       'We could not submit your inquiry. Please try again.',
     )
     expect(screen.getByRole('button', { name: /retry submission/i })).toBeInTheDocument()
+    expect(crmSubmitter).not.toHaveBeenCalled()
+  })
+
+  it('keeps the confirmed inquiry successful when the CRM mirror is unavailable', async () => {
+    const submitter = vi.fn(async () => ({
+      reference: 'SF-CRM1',
+      receivedAt: '2026-08-05T00:00:00.000Z',
+    }))
+    const crmSubmitter = vi.fn().mockRejectedValue(new Error('CRM offline'))
+    render(
+      <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
+        <ContactPage submitter={submitter} crmSubmitter={crmSubmitter} />
+      </MemoryRouter>,
+    )
+
+    const user = await completeRequiredFields()
+    await user.click(screen.getByRole('button', { name: /submit inquiry/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Inquiry received' })).toBeInTheDocument()
+    expect(crmSubmitter).toHaveBeenCalledWith(
+      { business_email: ['alex@example.com'] },
+      { pageURL: window.location.href },
+    )
   })
 
   it('passes the selected engineering drawing and empty honeypot to the submitter', async () => {
@@ -104,9 +132,10 @@ describe('contact page inquiry flow', () => {
       reference: 'SF-FILE1',
       receivedAt: '2026-08-05T00:00:00.000Z',
     }))
+    const crmSubmitter = vi.fn().mockResolvedValue({ accepted: true, created: true })
     render(
       <MemoryRouter initialEntries={['/contact?product=spur-gears']}>
-        <ContactPage submitter={submitter} />
+        <ContactPage submitter={submitter} crmSubmitter={crmSubmitter} />
       </MemoryRouter>,
     )
 
@@ -120,6 +149,11 @@ describe('contact page inquiry flow', () => {
     expect(submitter).toHaveBeenCalledWith(
       expect.objectContaining({ drawingFile: drawing, website: '' }),
     )
+    await waitFor(() => expect(crmSubmitter).toHaveBeenCalledWith(
+      { business_email: ['alex@example.com'] },
+      { pageURL: window.location.href },
+    ))
+    expect(JSON.stringify(crmSubmitter.mock.calls)).not.toContain('gear.step')
   })
 
   it('blocks an unsupported drawing before calling the submitter', async () => {

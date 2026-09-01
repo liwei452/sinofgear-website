@@ -1,42 +1,38 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react'
-import { useLocation } from 'react-router'
-import { getProductBySlug, localizeProduct } from '@/data/products'
+import { Loader2, MessageCircle } from 'lucide-react'
 import { useLang } from '@/i18n/LanguageContext'
 import { readCustomerServiceConfig } from './config'
-import { buildCustomerServiceContext } from './context'
-import { createScriptCustomerServiceAdapter } from './scriptAdapter'
+import { createModuleCustomerServiceAdapter } from './moduleAdapter'
 import type {
+  ContactUsSubmitter,
   CustomerServiceAdapter,
   CustomerServiceConfig,
-  CustomerServiceVisitor,
 } from './types'
 
-export type CustomerServiceStatus = 'disabled' | 'loading' | 'ready' | 'error'
+export type CustomerServiceStatus = 'disabled' | 'idle' | 'loading' | 'ready' | 'error'
 
 interface CustomerServiceValue {
   status: CustomerServiceStatus
   open: () => void
-  close: () => void
-  identify: (visitor: CustomerServiceVisitor) => void
+  submitContactUs: ContactUsSubmitter
 }
 
 const CustomerServiceContext = createContext<CustomerServiceValue>({
   status: 'disabled',
   open: () => {},
-  close: () => {},
-  identify: () => {},
+  submitContactUs: async () => null,
 })
 
 const configuredService = readCustomerServiceConfig(import.meta.env)
-const browserAdapter = createScriptCustomerServiceAdapter(document, window)
+const browserAdapter = createModuleCustomerServiceAdapter()
 
 interface CustomerServiceProviderProps {
   children: ReactNode
@@ -49,61 +45,71 @@ export function CustomerServiceProvider({
   config = configuredService,
   adapter = browserAdapter,
 }: CustomerServiceProviderProps) {
-  const location = useLocation()
-  const { lang } = useLang()
-  const [status, setStatus] = useState<CustomerServiceStatus>(config ? 'loading' : 'disabled')
-
-  const serviceContext = useMemo(() => {
-    const slug = location.pathname.startsWith('/products/')
-      ? location.pathname.slice('/products/'.length)
-      : undefined
-    const sourceProduct = getProductBySlug(slug)
-    const product = sourceProduct ? localizeProduct(sourceProduct, lang) : undefined
-
-    return buildCustomerServiceContext(
-      {
-        pathname: location.pathname,
-        search: location.search,
-        href: new URL(`${location.pathname}${location.search}`, window.location.origin).href,
-        referrer: document.referrer,
-      },
-      lang,
-      product ? { slug: product.slug, name: product.name } : undefined,
-    )
-  }, [lang, location.pathname, location.search])
-  const initialContextRef = useRef(serviceContext)
+  const { text } = useLang()
+  const [status, setStatus] = useState<CustomerServiceStatus>(config ? 'idle' : 'disabled')
+  const mountedRef = useRef(true)
+  const startedRef = useRef(false)
 
   useEffect(() => {
-    if (!config) return
-
-    let active = true
-    void adapter.init(config, initialContextRef.current).then(
-      () => active && setStatus('ready'),
-      () => active && setStatus('error'),
-    )
-
+    mountedRef.current = true
     return () => {
-      active = false
-      adapter.destroy()
+      mountedRef.current = false
+      if (startedRef.current) adapter.destroy()
+    }
+  }, [adapter])
+
+  const ensureInitialized = useCallback(async () => {
+    if (!config) throw new Error('Customer service is disabled')
+
+    startedRef.current = true
+    if (mountedRef.current) {
+      setStatus((current) => current === 'ready' ? current : 'loading')
+    }
+    try {
+      await adapter.init(config)
+      if (mountedRef.current) setStatus('ready')
+    } catch (error) {
+      if (mountedRef.current) setStatus('error')
+      throw error
     }
   }, [adapter, config])
 
-  useEffect(() => {
-    if (config) adapter.setContext(serviceContext)
-  }, [adapter, config, serviceContext])
-
   const effectiveStatus = config ? status : 'disabled'
+  const open = useCallback(() => {
+    void ensureInitialized().then(() => adapter.open()).catch(() => {})
+  }, [adapter, ensureInitialized])
+  const submitContactUs: ContactUsSubmitter = useCallback(async (fields, options) => {
+    if (!config) return null
+    await ensureInitialized()
+    return adapter.submitContactUs(fields, options)
+  }, [adapter, config, ensureInitialized])
 
   return (
     <CustomerServiceContext.Provider
       value={{
         status: effectiveStatus,
-        open: () => effectiveStatus === 'ready' && adapter.open(),
-        close: () => effectiveStatus === 'ready' && adapter.close(),
-        identify: (visitor) => effectiveStatus === 'ready' && adapter.identify(visitor),
+        open,
+        submitContactUs,
       }}
     >
       {children}
+      {config && effectiveStatus !== 'ready' && (
+        <button
+          id="open-inquiry-assistant"
+          type="button"
+          aria-label={text('Open inquiry assistant')}
+          disabled={effectiveStatus === 'loading'}
+          onClick={open}
+          className="fixed bottom-4 left-4 z-40 flex min-h-12 items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-3 font-semibold text-primary shadow-[0_14px_36px_-18px_hsl(var(--primary)/.7)] transition duration-200 hover:-translate-y-0.5 hover:bg-accent disabled:cursor-wait disabled:opacity-70 sm:bottom-6 sm:left-6"
+        >
+          {effectiveStatus === 'loading'
+            ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+            : <MessageCircle className="h-5 w-5" aria-hidden="true" />}
+          <span className="hidden text-sm sm:inline">
+            {text(effectiveStatus === 'loading' ? 'Opening inquiry assistant...' : 'Inquiry assistant')}
+          </span>
+        </button>
+      )}
     </CustomerServiceContext.Provider>
   )
 }
