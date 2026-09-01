@@ -76,6 +76,18 @@ describe('CustomerServiceProvider', () => {
     expect(serviceAdapter.open).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the launcher label visible and positions it above the mobile drawing action', () => {
+    const serviceAdapter = adapter()
+    renderProvider(serviceAdapter, config)
+
+    const launcher = screen.getByRole('button', { name: 'Open inquiry assistant' })
+    const label = screen.getByText('Inquiry assistant')
+
+    expect(label).not.toHaveClass('hidden')
+    expect(launcher).toHaveClass('bottom-20', 'right-4', 'bg-primary', 'text-white')
+    expect(launcher).not.toHaveClass('left-4')
+  })
+
   it('initializes on an explicit form submission before mirroring the contact', async () => {
     const user = userEvent.setup()
     const serviceAdapter = adapter()

@@ -100,12 +100,12 @@ export function CustomerServiceProvider({
           aria-label={text('Open inquiry assistant')}
           disabled={effectiveStatus === 'loading'}
           onClick={open}
-          className="fixed bottom-4 left-4 z-40 flex min-h-12 items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-3 font-semibold text-primary shadow-[0_14px_36px_-18px_hsl(var(--primary)/.7)] transition duration-200 hover:-translate-y-0.5 hover:bg-accent disabled:cursor-wait disabled:opacity-70 sm:bottom-6 sm:left-6"
+          className="fixed bottom-20 right-4 z-40 flex min-h-12 max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-primary bg-primary px-4 py-3 font-semibold text-white shadow-[0_16px_38px_-16px_hsl(var(--primary)/.85)] transition duration-200 hover:-translate-y-0.5 hover:bg-[hsl(209_100%_31%)] disabled:cursor-wait disabled:opacity-70 sm:bottom-24 sm:right-6"
         >
           {effectiveStatus === 'loading'
             ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             : <MessageCircle className="h-5 w-5" aria-hidden="true" />}
-          <span className="hidden text-sm sm:inline">
+          <span className="text-sm">
             {text(effectiveStatus === 'loading' ? 'Opening inquiry assistant...' : 'Inquiry assistant')}
           </span>
         </button>
