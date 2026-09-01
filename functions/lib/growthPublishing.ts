@@ -1,149 +1,130 @@
-import { parseGeneratedArticle, type GeneratedArticlePayload } from '../../src/data/generatedArticleContract'
+import { defineGrowthSite, GitHubContentsPublisher } from '@sinofgear/site-bridge-cloudflare'
+import type { DeploymentStatusResult, GrowthArticle, GrowthSiteHandlers, RepositoryPublisher } from '@sinofgear/site-bridge-cloudflare'
+import { parseGeneratedArticle } from '../../src/data/generatedArticleContract'
+import { productSlugs } from '../../src/data/products'
 
-export interface KvLike {
-  get(key: string): Promise<string | null>
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>
-}
-
-export interface GrowthPublishingEnv {
-  BLOG_PREVIEWS: KvLike
+export interface GrowthBindings {
   GROWTH_PUBLISH_TOKEN: string
-  GROWTH_ORGANIZATION_ID: string
   GITHUB_CONTENT_TOKEN: string
   GITHUB_REPOSITORY: string
   GITHUB_BRANCH: string
+  GROWTH_ORGANIZATION_ID: string
+  BLOG_PREVIEWS: KVNamespace
+  GROWTH_ASSETS: R2Bucket
+  CLOUDFLARE_ACCOUNT_ID?: string
+  CLOUDFLARE_PAGES_PROJECT?: string
+  CLOUDFLARE_API_TOKEN?: string
 }
 
-export interface GrowthContext {
-  request: Request
-  env: GrowthPublishingEnv
+interface GrowthPublishingDependencies {
+  repository?: RepositoryPublisher
+  fetch?: typeof fetch
+  deploymentStatus?: (input: { deploymentId: string; articleKey: string; version: number; commit?: { id: string; url: string } }) => Promise<DeploymentStatusResult>
 }
 
-type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+const coreRoutes = ['/', '/about', '/products', '/capabilities', '/quality', '/contact', '/blog']
+const productRoutes = productSlugs.map((slug) => `/products/${slug}`)
 
-function json(body: unknown, status = 200, headers: HeadersInit = {}) {
-  return Response.json(body, { status, headers: { 'cache-control': 'no-store', ...headers } })
-}
-
-function authorized(request: Request, env: GrowthPublishingEnv): boolean {
-  return Boolean(env.GROWTH_PUBLISH_TOKEN)
-    && request.headers.get('authorization') === `Bearer ${env.GROWTH_PUBLISH_TOKEN}`
-}
-
-function encodedContent(value: unknown): string {
-  const bytes = new TextEncoder().encode(`${JSON.stringify(value, null, 2)}\n`)
-  let binary = ''
-  for (const byte of bytes) binary += String.fromCharCode(byte)
-  return btoa(binary)
-}
-
-function decodedContent(value: string): unknown {
-  const binary = atob(value.replace(/\s/g, ''))
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
-  return JSON.parse(new TextDecoder().decode(bytes))
-}
-
-async function body(request: Request, articleKey: string, env: GrowthPublishingEnv): Promise<GeneratedArticlePayload> {
-  const value = await request.json() as GeneratedArticlePayload
-  if (value.article_key !== articleKey) throw new Error('article_key')
-  if (value.organization_id !== env.GROWTH_ORGANIZATION_ID) throw new Error('organization_id')
-  if (value.site_code !== 'sinofgears') throw new Error('site_code')
-  parseGeneratedArticle(value)
-  return value
-}
-
-function githubFileUrl(env: GrowthPublishingEnv, articleKey: string): string {
-  return `https://api.github.com/repos/${env.GITHUB_REPOSITORY}/contents/content/blog/${articleKey}.json`
-}
-
-function githubHeaders(env: GrowthPublishingEnv): HeadersInit {
-  return {
-    accept: 'application/vnd.github+json',
-    authorization: `Bearer ${env.GITHUB_CONTENT_TOKEN}`,
-    'content-type': 'application/json',
-    'x-github-api-version': '2022-11-28',
+function cloudflarePagesStatus(env: GrowthBindings, fetcher: typeof fetch): GrowthPublishingDependencies['deploymentStatus'] | undefined {
+  if (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_PAGES_PROJECT || !env.CLOUDFLARE_API_TOKEN) return undefined
+  return async (input) => {
+    const response = await fetcher(`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/pages/projects/${env.CLOUDFLARE_PAGES_PROJECT}/deployments`, {
+      headers: { Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}` },
+    })
+    if (!response.ok) throw new Error(`Cloudflare Pages status failed: ${response.status}`)
+    const payload = await response.json() as { result?: Array<{ id: string; environment: string; latest_stage?: { status?: string }; deployment_trigger?: { metadata?: { commit_hash?: string; commit_message?: string } } }> }
+    const expectedMessage = `Publish growth deployment ${input.deploymentId}`
+    const deployment = payload.result?.find((candidate) => candidate.environment === 'production' && (
+      input.commit?.id ? candidate.deployment_trigger?.metadata?.commit_hash === input.commit.id : candidate.deployment_trigger?.metadata?.commit_message === expectedMessage
+    ))
+    if (!deployment) return { status: 'PUBLISHING' }
+    if (deployment.latest_stage?.status === 'failure') return { status: 'FAILED', errorCode: 'CLOUDFLARE_BUILD_FAILED', providerDeploymentId: deployment.id }
+    if (deployment.latest_stage?.status !== 'success') return { status: 'PUBLISHING' }
+    return { status: 'PUBLISHED', canonicalUrl: `https://sinofgears.com/blog/${input.articleKey}`, providerDeploymentId: deployment.id }
   }
 }
 
-async function preview(context: GrowthContext, articleKey: string) {
-  const article = await body(context.request, articleKey, context.env)
-  await context.env.BLOG_PREVIEWS.put(
-    `preview:${articleKey}:v${article.version}`,
-    JSON.stringify(article),
-    { expirationTtl: 7 * 24 * 60 * 60 },
-  )
-  const origin = new URL(context.request.url).origin
-  return json({
-    status: 'PREVIEW_READY',
-    preview_url: `${origin}/growth-preview/${articleKey}?version=${article.version}`,
-  }, 201)
+function generatedArticleModule(article: GrowthArticle & { cover_asset_path?: string }): string {
+  const payload = {
+    ...article,
+    hero_image: article.cover_asset_path ? `/${article.cover_asset_path.replace(/^public\//, '')}` : '/assets/gear-spur.jpg',
+  }
+  parseGeneratedArticle(payload)
+  return `export default ${JSON.stringify([payload], null, 2)}\n`
 }
 
-async function publish(context: GrowthContext, articleKey: string, fetcher: Fetcher) {
-  const article = await body(context.request, articleKey, context.env)
-  const fileUrl = githubFileUrl(context.env, articleKey)
-  const existing = await fetcher(`${fileUrl}?ref=${encodeURIComponent(context.env.GITHUB_BRANCH)}`, {
-    headers: githubHeaders(context.env),
-  })
-  let currentFileVersion = ''
-  if (existing.ok) {
-    const stored = await existing.json() as { content?: string; sha?: string }
-    const current = stored.content ? decodedContent(stored.content) as { version?: number } : {}
-    if (Number(current.version) > article.version) return json({ detail: 'A newer article version is already stored.' }, 409)
-    if (Number(current.version) === article.version) {
-      await context.env.BLOG_PREVIEWS.put(`publication:${articleKey}`, JSON.stringify({ article_key: articleKey, version: article.version }))
-      return json({ status: 'PUBLISHING' }, 202)
+export function growthPublishing(env: GrowthBindings, dependencies: GrowthPublishingDependencies = {}): GrowthSiteHandlers {
+  const fetcher = dependencies.fetch ?? fetch
+  let repository = dependencies.repository
+  if (!repository) {
+    const repositoryParts = env.GITHUB_REPOSITORY.split('/')
+    if (repositoryParts.length !== 2 || !repositoryParts[0] || !repositoryParts[1]) {
+      throw new Error('GITHUB_REPOSITORY must use the owner/repository format')
     }
-    currentFileVersion = stored.sha ?? ''
-  } else if (existing.status !== 404) {
-    return json({ detail: 'GitHub content is temporarily unavailable.' }, 502)
+    repository = new GitHubContentsPublisher({
+      owner: repositoryParts[0], repository: repositoryParts[1], branch: env.GITHUB_BRANCH,
+      token: env.GITHUB_CONTENT_TOKEN, fetch: fetcher,
+    })
   }
-  const requestBody: Record<string, unknown> = {
-    message: `content: publish ${articleKey} v${article.version}`,
-    content: encodedContent(article),
-    branch: context.env.GITHUB_BRANCH,
-  }
-  if (currentFileVersion) requestBody.sha = currentFileVersion
-  const committed = await fetcher(fileUrl, {
-    method: 'PUT', headers: githubHeaders(context.env), body: JSON.stringify(requestBody),
+  return defineGrowthSite({
+    token: env.GROWTH_PUBLISH_TOKEN,
+    capabilities: {
+      contract_version: 'v1', site_code: 'sinofgears', languages: ['en'],
+      seo_description_max_length: 165, faq_min_items: 3, faq_max_items: 8,
+      allowed_internal_routes: [...coreRoutes, ...productRoutes],
+      allowed_product_slugs: [...productSlugs],
+      image_mime_types: ['image/jpeg', 'image/png', 'image/webp'], image_max_bytes: 5_000_000,
+      cover_image_required: true,
+    },
+    deployments: { get: (key) => env.BLOG_PREVIEWS.get(key), put: (key, value) => env.BLOG_PREVIEWS.put(key, value) },
+    repository,
+    canonicalBaseUrl: 'https://sinofgears.com', previewBaseUrl: 'https://sinofgears.com',
+    validateArticle: (article) => { parseGeneratedArticle(article) },
+    async listPages() {
+      const response = await fetcher('https://sinofgears.com/growth-content-index.json')
+      return response.ok ? response.json() : []
+    },
+    async loadAsset(assetId) {
+      const object = await env.GROWTH_ASSETS.get(assetId)
+      if (!object) throw new Error('Reviewed growth asset was not found')
+      return { bytes: new Uint8Array(await object.arrayBuffer()), mimeType: object.httpMetadata?.contentType ?? 'application/octet-stream' }
+    },
+    async storePreview(article) {
+      if (article.organization_id !== env.GROWTH_ORGANIZATION_ID || article.site_code !== 'sinofgears') {
+        throw new Error('Growth preview scope does not match this site')
+      }
+      await env.BLOG_PREVIEWS.put(
+        `preview:${article.article_key}:v${article.version}`,
+        JSON.stringify(article),
+        { expirationTtl: 7 * 24 * 60 * 60 },
+      )
+    },
+    async stageReviewedAsset(input) {
+      if (input.organizationId !== env.GROWTH_ORGANIZATION_ID) {
+        throw new Error('Growth asset organization does not match this site')
+      }
+      const objectKey = `growth/${input.organizationId}/${input.siteCode}/${input.articleKey}/v${input.version}/${input.assetId}`
+      await env.GROWTH_ASSETS.put(objectKey, input.bytes, { httpMetadata: { contentType: input.mimeType } })
+      await env.BLOG_PREVIEWS.put(`growth:manifest:${objectKey}`, JSON.stringify({
+        organization_id: input.organizationId, site_code: input.siteCode, article_key: input.articleKey, version: input.version,
+        asset_id: input.assetId, mime_type: input.mimeType, size_bytes: input.bytes.byteLength,
+        reviewed_revision: input.reviewedRevision, status: 'APPROVED', object_key: objectKey,
+      }))
+    },
+    async getReviewedAsset(input) {
+      if (input.organizationId !== env.GROWTH_ORGANIZATION_ID) return null
+      const objectKey = `growth/${input.organizationId}/${input.siteCode}/${input.articleKey}/v${input.version}/${input.assetId}`
+      const raw = await env.BLOG_PREVIEWS.get(`growth:manifest:${objectKey}`)
+      if (!raw) return null
+      const manifest = JSON.parse(raw) as { status: string; mime_type: string; reviewed_revision: string; object_key: string; size_bytes: number }
+      if (manifest.status !== 'APPROVED') return null
+      const object = await env.GROWTH_ASSETS.get(manifest.object_key)
+      if (!object) return null
+      const bytes = new Uint8Array(await object.arrayBuffer())
+      if (bytes.byteLength !== manifest.size_bytes || object.httpMetadata?.contentType !== manifest.mime_type) return null
+      return { reviewedRevision: manifest.reviewed_revision, mimeType: manifest.mime_type, bytes }
+    },
+    deploymentStatus: dependencies.deploymentStatus ?? cloudflarePagesStatus(env, fetcher),
+    renderArticle: generatedArticleModule,
   })
-  if (!committed.ok) return json({ detail: 'The website repository did not accept the article.' }, 502)
-  await context.env.BLOG_PREVIEWS.put(
-    `publication:${articleKey}`,
-    JSON.stringify({ article_key: articleKey, version: article.version }),
-  )
-  return json({ status: 'PUBLISHING' }, 202)
-}
-
-async function status(context: GrowthContext, articleKey: string, fetcher: Fetcher) {
-  const raw = await context.env.BLOG_PREVIEWS.get(`publication:${articleKey}`)
-  if (!raw) return json({ status: 'NEEDS_ATTENTION', error_message: 'No publication is in progress.' }, 404)
-  const publication = JSON.parse(raw) as { article_key: string; version: number }
-  const canonicalUrl = `${new URL(context.request.url).origin}/blog/${articleKey}`
-  const live = await fetcher(`${canonicalUrl}?publication-version=${publication.version}`, { headers: { 'cache-control': 'no-cache' } })
-  const html = live.ok ? await live.text() : ''
-  if (
-    html.includes(`data-article-key="${articleKey}"`)
-    && html.includes(`data-article-version="${publication.version}"`)
-  ) return json({ status: 'PUBLISHED', canonical_url: canonicalUrl })
-  return json({ status: 'PUBLISHING' }, 202)
-}
-
-export async function handleGrowthRequest(context: GrowthContext, fetcher: Fetcher = fetch): Promise<Response> {
-  if (!authorized(context.request, context.env)) return json({ detail: 'Unauthorized.' }, 401)
-  const path = new URL(context.request.url).pathname
-  const match = /^\/growth\/v1\/articles\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(preview|publish|status)$/.exec(path)
-  try {
-    if (match && context.request.method === 'POST' && match[2] === 'preview') return await preview(context, match[1])
-    if (match && context.request.method === 'POST' && match[2] === 'publish') return await publish(context, match[1], fetcher)
-    if (match && context.request.method === 'GET' && match[2] === 'status') return await status(context, match[1], fetcher)
-    if (path === '/growth/v1/pages' && context.request.method === 'GET') {
-      const index = await fetcher(`${new URL(context.request.url).origin}/growth-content-index.json`)
-      return index.ok ? json(await index.json()) : json([], 200)
-    }
-    return json({ detail: 'Not found.' }, 404)
-  } catch (error) {
-    const field = error instanceof Error ? error.message : 'article'
-    return json({ detail: `Invalid article field: ${field}` }, 422)
-  }
 }

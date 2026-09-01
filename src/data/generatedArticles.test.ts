@@ -30,6 +30,14 @@ describe('generated article loading', () => {
     expect(articles.map(({ slug }) => slug)).toEqual(['generated-gear-guide', 'older-guide'])
   })
 
+  it('loads versioned generated TypeScript module arrays without dropping existing articles', () => {
+    const generated = loadGeneratedArticleModules({
+      './generatedArticles/one.ts': { default: [payload, { ...payload, article_key: 'second-generated-guide' }] },
+    })
+
+    expect(generated.map(({ slug }) => slug)).toEqual(['generated-gear-guide', 'second-generated-guide'])
+  })
+
   it('rejects a generated slug that duplicates an existing article', () => {
     const existing = { slug: 'generated-gear-guide' } as Article
     const generated = loadGeneratedArticleModules({ '../../content/blog/generated.json': { default: payload } })

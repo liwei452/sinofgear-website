@@ -89,6 +89,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@sinofgear/site-bridge-cloudflare':
+        specifier: file:./vendor/site-bridge-cloudflare
+        version: file:vendor/site-bridge-cloudflare
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1382,6 +1385,9 @@ packages:
     resolution: {integrity: sha512-BfzEnDJOt9T8M989/lA37EcJgat01wLRnoi5dQf3QzOH7jzpqTAzdDbVfRljVr5r+jzKqpbHeyOfAaXxAd0PAA==}
     cpu: [x64]
     os: [win32]
+
+  '@sinofgear/site-bridge-cloudflare@file:vendor/site-bridge-cloudflare':
+    resolution: {directory: vendor/site-bridge-cloudflare, type: directory}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -3940,6 +3946,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
+
+  '@sinofgear/site-bridge-cloudflare@file:vendor/site-bridge-cloudflare': {}
 
   '@standard-schema/spec@1.1.0': {}
 

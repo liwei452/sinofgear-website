@@ -25,7 +25,9 @@ const englishNotice = 'Technical articles are currently available in English.'
 function ArticleContentBlock({ block }: { block: ArticleBlock }) {
   switch (block.type) {
     case 'paragraph':
-      return <p className="mt-4 text-muted-foreground">{block.text}</p>
+      return <p className="mt-4 text-muted-foreground">{block.segments?.map((segment, index) => segment.href
+        ? <Link key={`${segment.href}-${index}`} to={segment.href} className="font-medium text-primary underline-offset-4 hover:underline">{segment.text}</Link>
+        : <span key={`${segment.text}-${index}`}>{segment.text}</span>) ?? block.text}</p>
     case 'list': {
       const List = block.style === 'number' ? 'ol' : 'ul'
       return (
@@ -71,17 +73,19 @@ export default function BlogArticlePage() {
     .map((productSlug) => getProductBySlug(productSlug))
     .filter((product) => product !== undefined)
   const relatedArticles = getRelatedArticles(article)
+  const relatedResources = article.internalLinks?.filter(({ url }) => !url.startsWith('/products/')) ?? []
 
   return (
     <>
       <Seo
-        seo={{ title: `${article.title} | SINOF`, description: article.description }}
+        seo={{ title: `${article.seoTitle ?? article.title} | SINOF`, description: article.description }}
         pathname={`/blog/${article.slug}`}
         type="article"
         image={article.heroImage}
         publishedAt={article.publishedAt}
         updatedAt={article.updatedAt}
         structuredData={[
+          ...(article.structuredData ? [article.structuredData] : []),
           buildArticleSchema(article, baseUrl),
           buildBlogBreadcrumbSchema(article, baseUrl),
           buildFaqSchema(article.faq),
@@ -161,6 +165,19 @@ export default function BlogArticlePage() {
                 ))}
               </div>
             </section>
+
+            {relatedResources.length > 0 && (
+              <section aria-label="Related resources" className="mt-12">
+                <h2 className="text-2xl font-extrabold tracking-tight">Related resources</h2>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {relatedResources.map((resource) => (
+                    <Button key={`${resource.url}-${resource.label}`} asChild variant="outline">
+                      <Link to={resource.url}>{resource.label}</Link>
+                    </Button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="mt-12 border-t pt-10">
               <h2 className="text-2xl font-extrabold tracking-tight">Related insights</h2>

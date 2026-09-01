@@ -1,6 +1,13 @@
 import { expect, it } from 'vitest'
 
 import { handleGrowthPreview } from './[article_key]'
+import { growthPublishing } from '../lib/growthPublishing'
+
+class MemoryKV {
+  values = new Map<string, string>()
+  get(key: string) { return Promise.resolve(this.values.get(key) ?? null) }
+  put(key: string, value: string) { this.values.set(key, value); return Promise.resolve() }
+}
 
 it('renders an escaped noindex preview from KV', async () => {
   const payload = {
@@ -21,4 +28,43 @@ it('renders an escaped noindex preview from KV', async () => {
   expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
   expect(html).toContain('<meta name="robots" content="noindex,nofollow">')
   expect(html).toContain('Confirm the drawing &amp; application.')
+})
+
+it('opens the handler-returned versioned URL through the formal noindex preview Function', async () => {
+  const kv = new MemoryKV()
+  const handlers = growthPublishing({
+    GROWTH_PUBLISH_TOKEN: 'token', GITHUB_CONTENT_TOKEN: 'unused',
+    GITHUB_REPOSITORY: 'sinofgear/website', GITHUB_BRANCH: 'master', GROWTH_ORGANIZATION_ID: 'org-1',
+    BLOG_PREVIEWS: kv, GROWTH_ASSETS: { get: async () => null, put: async () => undefined },
+  }, { repository: { putFiles: async () => ({ id: 'commit', url: 'https://github.example/commit' }) } })
+  const payload = {
+    organization_id: 'org-1', site_code: 'sinofgears', article_key: 'reviewed-guide', version: 2,
+    title: 'Reviewed guide for industrial buyers', summary: 'A practical reviewed guide for industrial buyers.',
+    body: '## Review\n\nBody & evidence.', language: 'en', target_market: 'US', topic_cluster: 'Inspection',
+    seo_title: 'Reviewed SEO title', seo_description: 'A reviewed industrial sourcing guide with practical engineering context.',
+    faq: [
+      { question: 'What starts the review?', answer: 'A controlled drawing.' },
+      { question: 'What context is useful?', answer: 'Quantity and application.' },
+      { question: 'What should be agreed?', answer: 'Inspection scope.' },
+    ],
+    structured_data: { '@type': 'TechArticle' }, image_alt: 'Gear',
+    internal_links: [{ label: 'Helical gears', url: '/products/helical-gears' }], evidence_ids: ['source-1'],
+    published_at: '2026-09-02', updated_at: '2026-09-03',
+    cover_image: { asset_id: 'cover-1', filename: 'cover.webp', mime_type: 'image/webp', size_bytes: 3, alt: 'Gear', cover_role: 'HERO', reviewed_revision: 'review-2' },
+  }
+  const response = await handlers.fetch(new Request(
+    'https://sinofgears.com/growth/v1/articles/reviewed-guide/preview',
+    { method: 'POST', headers: { Authorization: 'Bearer token' }, body: JSON.stringify(payload) },
+  ))
+  const result = await response.json() as { preview_url: string }
+  const preview = await handleGrowthPreview({
+    request: new Request(result.preview_url), env: { BLOG_PREVIEWS: kv }, params: { article_key: 'reviewed-guide' },
+  })
+  const html = await preview.text()
+
+  expect(response.status).toBe(201)
+  expect(preview.status).toBe(200)
+  expect(preview.headers.get('x-robots-tag')).toBe('noindex, nofollow')
+  expect(html).toContain('Version 2')
+  expect(html).toContain('Body &amp; evidence.')
 })

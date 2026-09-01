@@ -55,6 +55,27 @@ describe('generated article contract', () => {
     expect(article.sections[0].blocks.map(({ type }) => type)).toEqual(['paragraph', 'subheading', 'list'])
     expect(article.sections[1].blocks.map(({ type }) => type)).toEqual(['table', 'list'])
     expect(article.relatedProductSlugs).toEqual(['custom-gears'])
+    expect(article.seoTitle).toBe('Gear Inspection Guide for Industrial Buyers')
+    expect(article.structuredData).toEqual({ '@type': 'Article' })
+    expect(article.internalLinks).toEqual([{ label: 'Custom gears', url: '/products/custom-gears' }])
+  })
+
+  it('keeps approved inline links and an immutable reviewed image path', () => {
+    const article = parseGeneratedArticle({
+      ...validPayload,
+      body: '## Review\n\nSee [custom gears](/products/custom-gears) for the approved scope.',
+      hero_image: '/assets/growth/gear-inspection-guide/v1/cover.webp',
+    })
+
+    expect(article.heroImage).toBe('/assets/growth/gear-inspection-guide/v1/cover.webp')
+    expect(article.sections[0].blocks[0]).toMatchObject({
+      type: 'paragraph',
+      segments: [
+        { text: 'See ' },
+        { text: 'custom gears', href: '/products/custom-gears' },
+        { text: ' for the approved scope.' },
+      ],
+    })
   })
 
   it.each([
@@ -65,6 +86,8 @@ describe('generated article contract', () => {
     ['title', { title: '' }],
     ['body', { body: '' }],
     ['internal_links', { internal_links: [{ label: 'Outside', url: 'https://example.com' }] }],
+    ['structured_data', { structured_data: null }],
+    ['hero_image', { hero_image: 'https://example.com/cover.webp' }],
   ])('rejects an invalid %s field', (field, override) => {
     expect(() => parseGeneratedArticle({ ...validPayload, ...override })).toThrow(field)
   })

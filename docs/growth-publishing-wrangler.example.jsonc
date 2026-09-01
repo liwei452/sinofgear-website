@@ -1,0 +1,18 @@
+{
+  // Merge these entries into the formal clone's existing wrangler.jsonc.
+  // Keep BLOG_PREVIEWS, GROWTH_ORGANIZATION_ID, GITHUB_REPOSITORY,
+  // GITHUB_BRANCH, GROWTH_PUBLISH_TOKEN, and GITHUB_CONTENT_TOKEN unchanged.
+  "r2_buckets": [
+    {
+      "binding": "GROWTH_ASSETS",
+      "bucket_name": "replace-with-reviewed-growth-assets-bucket"
+    }
+  ],
+  "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "replace-with-account-id",
+    "CLOUDFLARE_PAGES_PROJECT": "sinoform"
+  }
+
+  // Add the new provider credential as a secret, never as plaintext here:
+  // npx wrangler pages secret put CLOUDFLARE_API_TOKEN --project-name sinoform
+}

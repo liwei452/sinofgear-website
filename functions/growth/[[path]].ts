@@ -1,3 +1,8 @@
-import { handleGrowthRequest, type GrowthContext } from '../lib/growthPublishing'
+import { growthPublishing } from '../lib/growthPublishing'
 
-export const onRequest = (context: GrowthContext) => handleGrowthRequest(context)
+interface GrowthContext {
+  request: Request
+  env: Parameters<typeof growthPublishing>[0]
+}
+
+export const onRequest = ({ request, env }: GrowthContext) => growthPublishing(env).fetch(request)

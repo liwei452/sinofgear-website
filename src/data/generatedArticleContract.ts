@@ -21,6 +21,7 @@ export interface GeneratedArticlePayload {
   evidence_ids: string[]
   published_at: string
   updated_at: string
+  hero_image?: string
 }
 
 const articleKeyPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -35,6 +36,21 @@ function fail(field: string): never {
 function text(value: unknown, field: string): string {
   if (typeof value !== 'string' || !value.trim()) fail(field)
   return value.trim()
+}
+
+function inlineText(value: string): { text: string; segments?: Array<{ text: string; href?: string }> } {
+  const segments: Array<{ text: string; href?: string }> = []
+  const pattern = /\[([^\]]+)\]\((\/[^)]+)\)/g
+  let cursor = 0
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(value))) {
+    if (match.index > cursor) segments.push({ text: value.slice(cursor, match.index) })
+    segments.push({ text: match[1], href: match[2] })
+    cursor = match.index + match[0].length
+  }
+  if (!segments.length) return { text: value }
+  if (cursor < value.length) segments.push({ text: value.slice(cursor) })
+  return { text: segments.map((segment) => segment.text).join(''), segments }
 }
 
 function headingId(value: string): string {
@@ -110,7 +126,7 @@ function parseSections(body: string): ArticleSection[] {
       paragraph.push(lines[index].trim())
       index += 1
     }
-    active.blocks.push({ type: 'paragraph', text: paragraph.join(' ') })
+    active.blocks.push({ type: 'paragraph', ...inlineText(paragraph.join(' ')) })
   }
   if (!sections.length || sections.some(({ blocks }) => !blocks.length)) fail('body')
   return sections
@@ -162,11 +178,16 @@ export function parseGeneratedArticle(input: unknown): Article {
   const publishedAt = text(value.published_at, 'published_at')
   const updatedAt = text(value.updated_at, 'updated_at')
   if (!datePattern.test(publishedAt) || !datePattern.test(updatedAt)) fail('published_at')
-  const { products } = parseLinks(value.internal_links)
+  const { links, products } = parseLinks(value.internal_links)
+  if (!value.structured_data || typeof value.structured_data !== 'object' || Array.isArray(value.structured_data)) fail('structured_data')
+  const seoTitle = text(value.seo_title, 'seo_title')
+  const heroImage = value.hero_image === undefined ? '/assets/gear-spur.jpg' : text(value.hero_image, 'hero_image')
+  if (!heroImage.startsWith('/assets/')) fail('hero_image')
   const words = body.split(/\s+/).filter(Boolean).length
   return {
     slug: articleKey,
     title,
+    seoTitle,
     description: seoDescription,
     excerpt: summary,
     topic: text(value.topic_cluster, 'topic_cluster'),
@@ -174,10 +195,12 @@ export function parseGeneratedArticle(input: unknown): Article {
     updatedAt,
     readingMinutes: Math.max(5, Math.ceil(words / 220)),
     author: 'SINOF Engineering Team',
-    heroImage: '/assets/gear-spur.jpg',
+    heroImage,
     heroImageAlt: text(value.image_alt, 'image_alt'),
     sections: parseSections(body),
     faq: parseFaq(value.faq),
+    internalLinks: links,
+    structuredData: value.structured_data as Record<string, unknown>,
     relatedProductSlugs: products,
     version: Number(value.version),
   }

@@ -1,7 +1,7 @@
 import type { ProductSlug } from './products'
 
 export type ArticleBlock =
-  | { type: 'paragraph'; text: string }
+  | { type: 'paragraph'; text: string; segments?: Array<{ text: string; href?: string }> }
   | { type: 'list'; style: 'bullet' | 'number'; items: string[] }
   | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'note'; title: string; text: string }
@@ -16,6 +16,7 @@ export interface ArticleSection {
 export interface Article {
   slug: string
   title: string
+  seoTitle?: string
   description: string
   excerpt: string
   topic: string
@@ -27,6 +28,8 @@ export interface Article {
   heroImageAlt: string
   sections: ArticleSection[]
   faq: Array<{ question: string; answer: string }>
+  internalLinks?: Array<{ label: string; url: string }>
+  structuredData?: Record<string, unknown>
   relatedProductSlugs: ProductSlug[]
   version?: number
 }
