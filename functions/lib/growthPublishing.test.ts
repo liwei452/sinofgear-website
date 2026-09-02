@@ -155,11 +155,14 @@ describe('SINOF growth publishing adapter', () => {
     await stage(handlers)
     const response = await handlers.fetch(request('articles/reviewed-guide/preview', { method: 'POST', body: JSON.stringify(article) }))
     expect(response.status).toBe(201)
-    await expect(response.json()).resolves.toMatchObject({
-      status: 'PREVIEW_READY',
-      preview_url: 'https://sinofgears.com/growth-preview/reviewed-guide?version=2',
-    })
-    expect(JSON.parse(kv.values.get('preview:reviewed-guide:v2')!)).toEqual(article)
+    const result = await response.json() as { status: string; preview_url: string }
+    const previewUrl = new URL(result.preview_url)
+    const accessToken = previewUrl.searchParams.get('token')
+    expect(result.status).toBe('PREVIEW_READY')
+    expect(previewUrl.origin + previewUrl.pathname).toBe('https://sinofgears.com/growth-preview/reviewed-guide')
+    expect(previewUrl.searchParams.get('version')).toBe('2')
+    expect(accessToken).toMatch(/^[0-9a-f-]{36}$/)
+    expect(JSON.parse(kv.values.get('preview:reviewed-guide:v2')!)).toEqual({ access_token: accessToken, article })
     expect(repository.calls).toHaveLength(0)
   })
 

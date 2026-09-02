@@ -20,14 +20,40 @@ it('renders an escaped noindex preview from KV', async () => {
     published_at: '2026-08-26', updated_at: '2026-08-26',
   }
   const response = await handleGrowthPreview({
-    request: new Request('https://sinofgears.com/growth-preview/gear-guide?version=1'),
-    env: { BLOG_PREVIEWS: { get: async () => JSON.stringify(payload) } },
+    request: new Request('https://sinofgears.com/growth-preview/gear-guide?version=1&token=preview-token'),
+    env: { BLOG_PREVIEWS: { get: async () => JSON.stringify({ access_token: 'preview-token', article: payload }) } },
     params: { article_key: 'gear-guide' },
   })
   const html = await response.text()
   expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow')
   expect(html).toContain('<meta name="robots" content="noindex,nofollow">')
   expect(html).toContain('Confirm the drawing &amp; application.')
+})
+
+it.each([
+  ['missing', 'https://sinofgears.com/growth-preview/gear-guide?version=1'],
+  ['incorrect', 'https://sinofgears.com/growth-preview/gear-guide?version=1&token=wrong-token'],
+])('rejects a %s preview access token', async (_case, url) => {
+  const response = await handleGrowthPreview({
+    request: new Request(url),
+    env: { BLOG_PREVIEWS: { get: async () => JSON.stringify({
+      access_token: 'correct-token',
+      article: { article_key: 'gear-guide', version: 1 },
+    }) } },
+    params: { article_key: 'gear-guide' },
+  })
+
+  expect(response.status).toBe(404)
+})
+
+it('does not expose a legacy preview record without an access token', async () => {
+  const response = await handleGrowthPreview({
+    request: new Request('https://sinofgears.com/growth-preview/gear-guide?version=1'),
+    env: { BLOG_PREVIEWS: { get: async () => JSON.stringify({ article_key: 'gear-guide', version: 1 }) } },
+    params: { article_key: 'gear-guide' },
+  })
+
+  expect(response.status).toBe(404)
 })
 
 it('opens the handler-returned versioned URL through the formal noindex preview Function', async () => {

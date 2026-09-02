@@ -64,8 +64,12 @@ async function preview(request: Request, key: string, config: GrowthSiteConfig):
   if (parsed instanceof Response) return parsed
   const html = config.renderArticle(parsed)
   if (config.storePreview) {
-    await config.storePreview(parsed)
-    return json({ status: 'PREVIEW_READY', preview_url: `${config.previewBaseUrl.replace(/\/$/, '')}/growth-preview/${parsed.article_key}?version=${parsed.version}`, html }, 201)
+    const accessToken = crypto.randomUUID()
+    await config.storePreview({ article: parsed, accessToken })
+    const previewUrl = new URL(`/growth-preview/${parsed.article_key}`, `${config.previewBaseUrl.replace(/\/$/, '')}/`)
+    previewUrl.searchParams.set('version', String(parsed.version))
+    previewUrl.searchParams.set('token', accessToken)
+    return json({ status: 'PREVIEW_READY', preview_url: previewUrl.toString(), html }, 201)
   }
   return json({ status: 'PREVIEW', preview_url: `${config.previewBaseUrl.replace(/\/$/, '')}/blog/${parsed.article_key}?version=${parsed.version}`, html })
 }

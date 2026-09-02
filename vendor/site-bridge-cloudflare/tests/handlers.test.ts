@@ -14,7 +14,7 @@ const article: GrowthArticle = {
 
 describe('growth preview handler', () => {
   it('stores the complete canonical payload before returning the formal preview URL', async () => {
-    const stored: GrowthArticle[] = []
+    const stored: Array<{ article: GrowthArticle; accessToken: string }> = []
     const config: GrowthSiteConfig = {
       token: 'token',
       capabilities: {
@@ -27,7 +27,7 @@ describe('growth preview handler', () => {
       repository: { putFiles: async () => ({ id: 'commit', url: 'https://github.example/commit' }) },
       canonicalBaseUrl: 'https://sinofgears.com', previewBaseUrl: 'https://sinofgears.com',
       loadAsset: async () => ({ bytes: new Uint8Array(), mimeType: 'image/webp' }),
-      storePreview: async (payload) => { stored.push(payload) },
+      storePreview: async (input) => { stored.push(input) },
       renderArticle: () => 'rendered',
     }
     const response = await defineGrowthSite(config).fetch(new Request(
@@ -36,10 +36,14 @@ describe('growth preview handler', () => {
     ))
 
     expect(response.status).toBe(201)
-    await expect(response.json()).resolves.toMatchObject({
-      status: 'PREVIEW_READY',
-      preview_url: 'https://sinofgears.com/growth-preview/reviewed-guide?version=2',
-    })
-    expect(stored).toEqual([article])
+    const result = await response.json() as { status: string; preview_url: string }
+    const previewUrl = new URL(result.preview_url)
+    const accessToken = previewUrl.searchParams.get('token')
+
+    expect(result.status).toBe('PREVIEW_READY')
+    expect(previewUrl.origin + previewUrl.pathname).toBe('https://sinofgears.com/growth-preview/reviewed-guide')
+    expect(previewUrl.searchParams.get('version')).toBe('2')
+    expect(accessToken).toMatch(/^[0-9a-f-]{36}$/)
+    expect(stored).toEqual([{ article, accessToken }])
   })
 })

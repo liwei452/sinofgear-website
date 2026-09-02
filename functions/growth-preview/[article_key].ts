@@ -37,16 +37,22 @@ function renderPreview(article: ReturnType<typeof parseGeneratedArticle>): strin
 
 export async function handleGrowthPreview(context: PreviewContext): Promise<Response> {
   const articleKey = context.params.article_key ?? ''
-  const version = Number(new URL(context.request.url).searchParams.get('version'))
+  const searchParams = new URL(context.request.url).searchParams
+  const version = Number(searchParams.get('version'))
+  const accessToken = searchParams.get('token')
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(articleKey) || !Number.isInteger(version) || version <= 0) {
     return new Response('Not found', { status: 404 })
   }
   const stored = await context.env.BLOG_PREVIEWS.get(`preview:${articleKey}:v${version}`)
   if (!stored) return new Response('Not found', { status: 404 })
   try {
-    const raw = JSON.parse(stored) as { article_key?: string; version?: number }
-    if (raw.article_key !== articleKey || raw.version !== version) return new Response('Not found', { status: 404 })
-    const article = parseGeneratedArticle(raw)
+    const raw = JSON.parse(stored) as { access_token?: unknown; article?: unknown }
+    if (!accessToken || typeof raw.access_token !== 'string' || raw.access_token !== accessToken || !raw.article || typeof raw.article !== 'object') {
+      return new Response('Not found', { status: 404 })
+    }
+    const canonical = raw.article as { article_key?: string; version?: number }
+    if (canonical.article_key !== articleKey || canonical.version !== version) return new Response('Not found', { status: 404 })
+    const article = parseGeneratedArticle(canonical)
     return new Response(renderPreview(article), {
       headers: {
         'content-type': 'text/html; charset=utf-8',

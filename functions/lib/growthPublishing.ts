@@ -89,13 +89,13 @@ export function growthPublishing(env: GrowthBindings, dependencies: GrowthPublis
       if (!object) throw new Error('Reviewed growth asset was not found')
       return { bytes: new Uint8Array(await object.arrayBuffer()), mimeType: object.httpMetadata?.contentType ?? 'application/octet-stream' }
     },
-    async storePreview(article) {
+    async storePreview({ article, accessToken }) {
       if (article.organization_id !== env.GROWTH_ORGANIZATION_ID || article.site_code !== 'sinofgears') {
         throw new Error('Growth preview scope does not match this site')
       }
       await env.BLOG_PREVIEWS.put(
         `preview:${article.article_key}:v${article.version}`,
-        JSON.stringify(article),
+        JSON.stringify({ access_token: accessToken, article }),
         { expirationTtl: 7 * 24 * 60 * 60 },
       )
     },
