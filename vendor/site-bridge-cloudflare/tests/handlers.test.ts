@@ -14,7 +14,7 @@ const article: GrowthArticle = {
 
 describe('growth preview handler', () => {
   it('stores the complete canonical payload before returning the formal preview URL', async () => {
-    const stored: Array<{ article: GrowthArticle; accessToken: string }> = []
+    const stored: GrowthArticle[] = []
     const config: GrowthSiteConfig = {
       token: 'token',
       capabilities: {
@@ -27,7 +27,7 @@ describe('growth preview handler', () => {
       repository: { putFiles: async () => ({ id: 'commit', url: 'https://github.example/commit' }) },
       canonicalBaseUrl: 'https://sinofgears.com', previewBaseUrl: 'https://sinofgears.com',
       loadAsset: async () => ({ bytes: new Uint8Array(), mimeType: 'image/webp' }),
-      storePreview: async (input) => { stored.push(input) },
+      storePreview: async (payload) => { stored.push(payload); return { accessToken: 'preview-token' } },
       renderArticle: () => 'rendered',
     }
     const response = await defineGrowthSite(config).fetch(new Request(
@@ -38,12 +38,35 @@ describe('growth preview handler', () => {
     expect(response.status).toBe(201)
     const result = await response.json() as { status: string; preview_url: string }
     const previewUrl = new URL(result.preview_url)
-    const accessToken = previewUrl.searchParams.get('token')
-
     expect(result.status).toBe('PREVIEW_READY')
     expect(previewUrl.origin + previewUrl.pathname).toBe('https://sinofgears.com/growth-preview/reviewed-guide')
     expect(previewUrl.searchParams.get('version')).toBe('2')
-    expect(accessToken).toMatch(/^[0-9a-f-]{36}$/)
-    expect(stored).toEqual([{ article, accessToken }])
+    expect(previewUrl.searchParams.get('access_token')).toBe('preview-token')
+    expect(stored).toEqual([article])
+  })
+
+  it('fails closed when preview storage does not return an access token', async () => {
+    const config: GrowthSiteConfig = {
+      token: 'token',
+      capabilities: {
+        contract_version: 'v1', site_code: 'sinofgears', languages: ['en'], seo_description_max_length: 165,
+        faq_min_items: 1, faq_max_items: 6, allowed_internal_routes: ['/products/helical-gears'],
+        allowed_product_slugs: ['helical-gears'], image_mime_types: ['image/webp'], image_max_bytes: 5_000_000,
+        cover_image_required: false,
+      },
+      deployments: { get: async () => null, put: async () => undefined },
+      repository: { putFiles: async () => ({ id: 'commit', url: 'https://github.example/commit' }) },
+      canonicalBaseUrl: 'https://sinofgears.com', previewBaseUrl: 'https://sinofgears.com',
+      loadAsset: async () => ({ bytes: new Uint8Array(), mimeType: 'image/webp' }),
+      storePreview: async () => ({ accessToken: '' }),
+      renderArticle: () => 'rendered',
+    }
+    const response = await defineGrowthSite(config).fetch(new Request(
+      'https://sinofgears.com/growth/v1/articles/reviewed-guide/preview',
+      { method: 'POST', headers: { Authorization: 'Bearer token' }, body: JSON.stringify(article) },
+    ))
+
+    expect(response.status).toBe(503)
+    await expect(response.json()).resolves.toEqual({ code: 'PREVIEW_UNAVAILABLE' })
   })
 })

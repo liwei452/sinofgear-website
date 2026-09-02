@@ -157,7 +157,7 @@ describe('SINOF growth publishing adapter', () => {
     expect(response.status).toBe(201)
     const result = await response.json() as { status: string; preview_url: string }
     const previewUrl = new URL(result.preview_url)
-    const accessToken = previewUrl.searchParams.get('token')
+    const accessToken = previewUrl.searchParams.get('access_token')
     expect(result.status).toBe('PREVIEW_READY')
     expect(previewUrl.origin + previewUrl.pathname).toBe('https://sinofgears.com/growth-preview/reviewed-guide')
     expect(previewUrl.searchParams.get('version')).toBe('2')

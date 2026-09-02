@@ -20,7 +20,7 @@ it('renders an escaped noindex preview from KV', async () => {
     published_at: '2026-08-26', updated_at: '2026-08-26',
   }
   const response = await handleGrowthPreview({
-    request: new Request('https://sinofgears.com/growth-preview/gear-guide?version=1&token=preview-token'),
+    request: new Request('https://sinofgears.com/growth-preview/gear-guide?version=1&access_token=preview-token'),
     env: { BLOG_PREVIEWS: { get: async () => JSON.stringify({ access_token: 'preview-token', article: payload }) } },
     params: { article_key: 'gear-guide' },
   })
@@ -32,7 +32,7 @@ it('renders an escaped noindex preview from KV', async () => {
 
 it.each([
   ['missing', 'https://sinofgears.com/growth-preview/gear-guide?version=1'],
-  ['incorrect', 'https://sinofgears.com/growth-preview/gear-guide?version=1&token=wrong-token'],
+  ['incorrect', 'https://sinofgears.com/growth-preview/gear-guide?version=1&access_token=wrong-token'],
 ])('rejects a %s preview access token', async (_case, url) => {
   const response = await handleGrowthPreview({
     request: new Request(url),

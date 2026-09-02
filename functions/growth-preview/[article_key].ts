@@ -39,7 +39,7 @@ export async function handleGrowthPreview(context: PreviewContext): Promise<Resp
   const articleKey = context.params.article_key ?? ''
   const searchParams = new URL(context.request.url).searchParams
   const version = Number(searchParams.get('version'))
-  const accessToken = searchParams.get('token')
+  const accessToken = searchParams.get('access_token')
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(articleKey) || !Number.isInteger(version) || version <= 0) {
     return new Response('Not found', { status: 404 })
   }

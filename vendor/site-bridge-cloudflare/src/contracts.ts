@@ -69,7 +69,7 @@ export interface GrowthSiteConfig {
   validateArticle?(article: GrowthArticle): void
   listPages?(): Promise<unknown>
   loadAsset(assetId: string): Promise<{ bytes: Uint8Array; mimeType: string }>
-  storePreview?(input: { article: GrowthArticle; accessToken: string }): Promise<void>
+  storePreview?(article: GrowthArticle): Promise<{ accessToken: string }>
   stageReviewedAsset?(input: { assetId: string; organizationId: string; siteCode: string; articleKey: string; version: number; reviewedRevision: string; mimeType: string; bytes: Uint8Array }): Promise<void>
   getReviewedAsset?(input: { assetId: string; organizationId: string; siteCode: string; articleKey: string; version: number }): Promise<{ reviewedRevision: string; mimeType: string; bytes: Uint8Array } | null>
   deploymentStatus?(input: { deploymentId: string; articleKey: string; version: number; commit?: RepositoryCommit }): Promise<DeploymentStatusResult>
