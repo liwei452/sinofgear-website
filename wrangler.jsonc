@@ -9,9 +9,17 @@
       "id": "8aaedc094c4a4fdfabd8f976b40005c1"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "GROWTH_ASSETS",
+      "bucket_name": "sinofgear-growth-assets"
+    }
+  ],
   "vars": {
     "GROWTH_ORGANIZATION_ID": "0fb9cdc7-365a-4d81-bcd2-24317ff47925",
     "GITHUB_REPOSITORY": "liwei452/sinofgear-website",
-    "GITHUB_BRANCH": "master"
+    "GITHUB_BRANCH": "master",
+    "CLOUDFLARE_ACCOUNT_ID": "e73c4d1089b39f9fdc2eccb19a962d33",
+    "CLOUDFLARE_PAGES_PROJECT": "sinoform"
   }
 }
