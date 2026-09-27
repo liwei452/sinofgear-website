@@ -55,6 +55,20 @@ INQUIRY_FROM_EMAIL=Sinoform RFQ <inquiries@sinofgears.com>
 
 自定义 IP 接口可以返回 `{ "countryCode": "DE" }`、`{ "country": "DE" }` 或 `{ "country_code": "DE" }`。默认 Cloudflare 接口读取 `loc=DE`。网络错误、超时、无效或未映射国家均不会阻塞页面。
 
+## Google Analytics 4
+
+生产构建通过 `.env.production` 使用公开测量 ID `G-LR5GZ47F66`。`src/main.tsx` 的既有公共入口调用 `initializeAnalytics`，只在 `sinofgears.com` / `www.sinofgears.com` 加载一次异步 Google tag。localhost、Pages 预览域名、CRM 子域名以及 `/growth-preview`、`/growth`、`/crm`、`/admin` 入口不加载统计。
+
+GA4 的初始页面和 React Router 历史路由页面由 **Enhanced measurement → Page views → Page changes based on browser history events** 自动计数；必须保持该设置开启。GA 分支不手动发送 `page_view`。2026-09-28 读取该 ID 的 Google 标签脚本时，历史事件已开启。若以后改用手动页面事件，必须先关闭 GA4 的自动历史计数，不能只设置 `send_page_view: false`。GTM 分支保留优先级；生产环境不要同时配置 `VITE_GTM_CONTAINER_ID`，否则须在该 GTM 容器内另行配置 GA4。
+
+CRM/网站验收应先在新标签页打开 `https://sinofgears.com/?analytics=off`，再开始操作；本标签页后续导航和刷新继续禁用统计。也可在访问前由自动化设置 `sessionStorage['sinof-analytics-disabled']='true'`。这不影响真实网站访客。若浏览器禁止 sessionStorage，应在每次文档导航保留 `analytics=off`。此开关不是 GA4 后台内部流量过滤器，不能自动识别所有员工访问。
+
+本接入保留既有 `dataLayer` / `gtag` 和已排队的 analytics consent；不设置 `analytics_storage: granted`，也没有新增 Cookie 弹窗。广告存储、广告用户数据和个性化默认为 denied，Google Signals 和广告个性化关闭。不新增姓名、邮箱、公司、留言、附件或用户标识事件，既有询盘成功事件仅包含产品类别和是否有图纸。网站源码目前未包含 CMP；发布前应由网站负责人确认当前同意策略。不要在公开链接的 URL 中放入个人信息。
+
+Cloudflare Pages 项目为 `sinoform`，源码分支 `master`，构建命令 `npm run build`、输出 `dist`。检查 Pages 中是否有覆盖 `VITE_GA_MEASUREMENT_ID` 或配置了 `VITE_GTM_CONTAINER_ID`。审核合并与生产发布是独立操作；代码测试通过不代表已经上线或 GA4 已收数。上线后再核对真实浏览器单次脚本加载、首页/产品/关于及前进后退请求，并在 GA4 Realtime/DebugView 确认。不要为测试提交真实询盘。
+
+参考：[Google SPA 测量](https://developers.google.com/analytics/devguides/collection/ga4/single-page-applications)、[避免重复 page_view](https://developers.google.com/analytics/devguides/collection/ga4/views)、[同意模式](https://developers.google.com/tag-platform/security/guides/consent)。
+
 ## 多语言规则
 
 网站包含英语、简体中文、德语、日语和西班牙语内容。用户手动选择保存在 `sinoform-language`，优先级始终最高。
